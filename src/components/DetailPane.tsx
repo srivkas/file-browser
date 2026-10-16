@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import type { FileNode } from '../lib/tree';
-import { fileType, formatBytes, formatDate } from '../lib/format';
+import { fileType, formatBytes, formatDate, formatRelativeTime } from '../lib/format';
+import { relativeTime } from '../lib/time';
 import { isImage, readExif, readImageDimensions, type ExifRow, type ImageDimensions } from '../lib/image';
 
 export function DetailPane({ node }: { node: FileNode }) {
@@ -14,11 +15,22 @@ export function DetailPane({ node }: { node: FileNode }) {
         <dt>Type</dt>
         <dd>{fileType(file)}</dd>
         <dt>Modified</dt>
-        <dd>{formatDate(file.lastModified)}</dd>
+        {/* key re-reads "now" when the selection changes */}
+        <ModifiedDate key={node.path} timestamp={file.lastModified} />
       </dl>
       {/* key resets image state when the selection changes */}
       {isImage(file) && <ImageDetails key={node.path} file={file} />}
     </div>
+  );
+}
+
+function ModifiedDate({ timestamp }: { timestamp: number }) {
+  // Captured once per file; the text doesn't update while the pane stays open.
+  const [now] = useState(Date.now);
+  return (
+    <dd>
+      {formatDate(timestamp)} <span className="muted">({formatRelativeTime(relativeTime(timestamp, now))})</span>
+    </dd>
   );
 }
 
