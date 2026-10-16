@@ -20,6 +20,7 @@ body {
   background: var(--color-sidebar);
 }
 .toolbar-title { font-weight: 600; }
+.toolbar-summary { color: var(--color-muted); }
 
 .button {
   font: inherit;

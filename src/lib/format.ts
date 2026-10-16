@@ -23,6 +23,13 @@ export function formatRelativeTime(time: RelativeTime): string {
   return `${time.count} ${time.unit}${time.count === 1 ? '' : 's'} ago`;
 }
 
+const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
+
+/** "3 files · 2 images", "1 file · 1 image". */
+export function formatSummary(summary: { files: number; images: number }): string {
+  return `${plural(summary.files, 'file')} · ${plural(summary.images, 'image')}`;
+}
+
 export function extension(name: string): string {
   const dot = name.lastIndexOf('.');
   return dot > 0 ? name.slice(dot + 1).toLowerCase() : '';

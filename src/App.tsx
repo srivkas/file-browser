@@ -3,6 +3,8 @@ import type { DirNode, FileNode } from './lib/tree';
 import { FolderPicker } from './components/FolderPicker';
 import { FileTree } from './components/FileTree';
 import { DetailPane } from './components/DetailPane';
+import { formatSummary } from './lib/format';
+import { summarizeTree } from './lib/summary';
 
 export function App() {
   const [root, setRoot] = useState<DirNode | null>(null);
@@ -18,6 +20,7 @@ export function App() {
       <header className="toolbar">
         <FolderPicker onPick={handlePick} />
         {root && <span className="toolbar-title">{root.name}</span>}
+        {root && <span className="toolbar-summary">{formatSummary(summarizeTree(root))}</span>}
       </header>
       <main className="panes">
         <nav className="tree-pane" aria-label="Folder contents">
