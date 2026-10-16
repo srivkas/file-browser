@@ -2,3 +2,6 @@ node_modules
 dist
 *.log
 .DS_Store
+
+# Claude Code personal settings (per machine)
+.claude/settings.local.json
