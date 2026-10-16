@@ -8,6 +8,6 @@
     ]
   },
   "env": {
-    "BROWSER": "none"
+    "BROWSER": "Safari"
   }
 }
