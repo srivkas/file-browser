@@ -1,8 +1,9 @@
 import { Fragment, useEffect, useState } from 'react';
 import type { FileNode } from '../lib/tree';
-import { fileType, formatBytes, formatDate, formatRelativeTime } from '../lib/format';
+import { fileType, formatBytes, formatDate, formatLineCount, formatRelativeTime } from '../lib/format';
 import { relativeTime } from '../lib/time';
 import { isImage, readExif, readImageDimensions, type ExifRow, type ImageDimensions } from '../lib/image';
+import { canCountLines, countLines } from '../lib/text';
 
 export function DetailPane({ node }: { node: FileNode }) {
   const { file } = node;
@@ -17,6 +18,8 @@ export function DetailPane({ node }: { node: FileNode }) {
         <dt>Modified</dt>
         {/* key re-reads "now" when the selection changes */}
         <ModifiedDate key={node.path} timestamp={file.lastModified} />
+        {/* key resets the count when the selection changes */}
+        {canCountLines(file) && <LineCount key={node.path} file={file} />}
       </dl>
       {/* key resets image state when the selection changes */}
       {isImage(file) && <ImageDetails key={node.path} file={file} />}
@@ -31,6 +34,32 @@ function ModifiedDate({ timestamp }: { timestamp: number }) {
     <dd>
       {formatDate(timestamp)} <span className="muted">({formatRelativeTime(relativeTime(timestamp, now))})</span>
     </dd>
+  );
+}
+
+function LineCount({ file }: { file: File }) {
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    file.text().then(
+      (text) => {
+        if (!cancelled) setCount(countLines(text));
+      },
+      () => {},
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [file]);
+
+  // The row appears once the count is ready; unreadable files show no row.
+  if (count === null) return null;
+  return (
+    <>
+      <dt>Lines</dt>
+      <dd>{formatLineCount(count)}</dd>
+    </>
   );
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extension, fileType, formatBytes, formatRelativeTime } from './format';
+import { extension, fileType, formatBytes, formatLineCount, formatRelativeTime } from './format';
 import { formatExif } from './image';
 
 describe('formatBytes', () => {
@@ -47,5 +47,13 @@ describe('formatRelativeTime', () => {
     expect(formatRelativeTime({ unit: 'minute', count: 1 })).toBe('1 minute ago');
     expect(formatRelativeTime({ unit: 'day', count: 2 })).toBe('2 days ago');
     expect(formatRelativeTime({ unit: 'year', count: 2 })).toBe('2 years ago');
+  });
+});
+
+describe('formatLineCount', () => {
+  it('groups thousands', () => {
+    expect(formatLineCount(0)).toBe('0');
+    expect(formatLineCount(1204)).toBe('1,204');
+    expect(formatLineCount(1234567)).toBe('1,234,567');
   });
 });

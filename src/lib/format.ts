@@ -30,6 +30,11 @@ export function formatSummary(summary: { files: number; images: number }): strin
   return `${plural(summary.files, 'file')} · ${plural(summary.images, 'image')}`;
 }
 
+/** "1,204". */
+export function formatLineCount(count: number): string {
+  return count.toLocaleString('en-US');
+}
+
 export function extension(name: string): string {
   const dot = name.lastIndexOf('.');
   return dot > 0 ? name.slice(dot + 1).toLowerCase() : '';
