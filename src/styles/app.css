@@ -1,0 +1,88 @@
+/* Layout and components. Only use values from tokens.css here. */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.app { display: flex; flex-direction: column; height: 100vh; }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-sidebar);
+}
+.toolbar-title { font-weight: 600; }
+
+.button {
+  font: inherit;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.button:hover { background: var(--color-hover); }
+
+.panes { display: flex; flex: 1; min-height: 0; }
+.tree-pane {
+  width: var(--tree-pane-width);
+  flex-shrink: 0;
+  overflow: auto;
+  padding: var(--space-2);
+  border-right: 1px solid var(--color-border);
+  background: var(--color-sidebar);
+}
+.detail-pane { flex: 1; overflow: auto; padding: var(--space-4); }
+
+.empty, .muted { color: var(--color-muted); }
+
+/* Tree */
+.tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  width: 100%;
+  padding-block: var(--space-1);
+  padding-inline-end: var(--space-2);
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: default;
+}
+.tree-row:hover { background: var(--color-hover); }
+.tree-row.is-selected { background: var(--color-accent); color: var(--color-accent-text); }
+.tree-chevron { width: var(--space-3); flex-shrink: 0; font-size: var(--font-size-sm); }
+.tree-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Details */
+.details-title { margin: 0 0 var(--space-3); font-size: var(--font-size-lg); word-break: break-all; }
+.section-title { margin: var(--space-4) 0 var(--space-2); font-size: var(--font-size-md); }
+.props {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+}
+.props dt { color: var(--color-muted); }
+.props dd { margin: 0; word-break: break-word; }
+.preview {
+  display: block;
+  max-width: 100%;
+  max-height: var(--preview-max-height);
+  margin: var(--space-4) 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
