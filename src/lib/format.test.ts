@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extension, fileType, formatBytes } from './format';
+import { extension, fileType, formatBytes, formatRelativeTime } from './format';
 import { formatExif } from './image';
 
 describe('formatBytes', () => {
@@ -38,5 +38,14 @@ describe('formatExif', () => {
       ['Flash', 'No'],
       ['GPSVersionID', '2, 3, 0, 0'],
     ]);
+  });
+});
+
+describe('formatRelativeTime', () => {
+  it('pluralises and handles now', () => {
+    expect(formatRelativeTime({ unit: 'now' })).toBe('just now');
+    expect(formatRelativeTime({ unit: 'minute', count: 1 })).toBe('1 minute ago');
+    expect(formatRelativeTime({ unit: 'day', count: 2 })).toBe('2 days ago');
+    expect(formatRelativeTime({ unit: 'year', count: 2 })).toBe('2 years ago');
   });
 });

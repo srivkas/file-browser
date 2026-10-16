@@ -1,3 +1,5 @@
+import type { RelativeTime } from './time';
+
 const UNITS = ['B', 'KB', 'MB', 'GB', 'TB'];
 
 export function formatBytes(bytes: number): string {
@@ -13,6 +15,12 @@ export function formatBytes(bytes: number): string {
 
 export function formatDate(timestamp: number): string {
   return new Date(timestamp).toLocaleString();
+}
+
+/** "just now", "1 day ago", "3 days ago". */
+export function formatRelativeTime(time: RelativeTime): string {
+  if (time.unit === 'now') return 'just now';
+  return `${time.count} ${time.unit}${time.count === 1 ? '' : 's'} ago`;
 }
 
 export function extension(name: string): string {
