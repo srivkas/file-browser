@@ -65,6 +65,13 @@ body {
 }
 .tree-row:hover { background: var(--color-hover); }
 .tree-row.is-selected { background: var(--color-accent); color: var(--color-accent-text); }
+/* The treeitem <li> holds focus, but it also wraps its children, so the ring goes on its own row. */
+.tree [role='treeitem']:focus { outline: none; }
+.tree [role='treeitem']:focus-visible > .tree-row {
+  outline: var(--focus-ring-width) solid var(--color-accent);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+.tree [role='treeitem']:focus-visible > .tree-row.is-selected { outline-color: var(--color-accent-text); }
 .tree-chevron { width: var(--space-3); flex-shrink: 0; font-size: var(--font-size-sm); }
 .tree-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
