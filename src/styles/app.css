@@ -47,6 +47,18 @@ body {
 .empty, .muted { color: var(--color-muted); }
 
 /* Tree */
+.tree-filter {
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  font: inherit;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+.tree-filter:focus-visible { outline: var(--focus-ring-width) solid var(--color-accent); outline-offset: calc(-1 * var(--focus-ring-width)); }
 .tree, .tree ul { list-style: none; margin: 0; padding: 0; }
 .tree-row {
   display: flex;

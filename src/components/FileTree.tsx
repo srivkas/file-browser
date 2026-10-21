@@ -1,5 +1,6 @@
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import type { DirNode, FileNode, TreeNode } from '../lib/tree';
+import { filterTree, folderPaths } from '../lib/filter';
 import { treeKeyAction, visibleRows } from '../lib/tree-nav';
 
 interface Props {
@@ -13,15 +14,34 @@ interface TreeState {
   open: ReadonlySet<string>;
   /** The one row in the tab order (roving tabindex). */
   focused: string;
+  /** Text in the filter box. */
+  query: string;
 }
 
-const initialState = (root: DirNode): TreeState => ({ root, open: new Set([root.path]), focused: root.path });
+const initialState = (root: DirNode): TreeState => ({
+  root,
+  open: new Set([root.path]),
+  focused: root.path,
+  query: '',
+});
 
 export function FileTree({ root, selectedPath, onSelect }: Props) {
   const [saved, setState] = useState(() => initialState(root));
   // A newly picked folder starts fresh: only the root open, focus on the root.
   const state = saved.root === root ? saved : initialState(root);
   const items = useRef(new Map<string, HTMLLIElement>());
+  const shown = useMemo(() => filterTree(root, state.query), [root, state.query]);
+  const rows = useMemo(() => (shown ? visibleRows(shown, state.open) : []), [shown, state.open]);
+  // A focused row the filter hid hands the tab stop back to the root.
+  const focused = rows.some((row) => row.node.path === state.focused) ? state.focused : root.path;
+
+  function handleFilterChange(event: ChangeEvent<HTMLInputElement>) {
+    const query = event.target.value;
+    // Like VS Code, open every folder that leads to a match; the user can still close them after.
+    const matches = filterTree(root, query);
+    const open = matches && matches !== root ? new Set([...state.open, ...folderPaths(matches)]) : state.open;
+    setState({ ...state, query, open });
+  }
 
   function setOpen(path: string, open: boolean) {
     const next = new Set(state.open);
@@ -32,7 +52,7 @@ export function FileTree({ root, selectedPath, onSelect }: Props) {
 
   function handleKeyDown(event: KeyboardEvent<HTMLUListElement>) {
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-    const action = treeKeyAction(visibleRows(root, state.open), state.focused, event.key, state.open);
+    const action = treeKeyAction(rows, focused, event.key, state.open);
     if (!action) return;
     event.preventDefault();
     if (action.type === 'focus') items.current.get(action.path)?.focus();
@@ -42,12 +62,12 @@ export function FileTree({ root, selectedPath, onSelect }: Props) {
 
   const rowProps: RowContext = {
     open: state.open,
-    focusedPath: state.focused,
+    focusedPath: focused,
     selectedPath,
     onSelect,
     onToggle: (path) => setOpen(path, !state.open.has(path)),
     onFocusRow: (path) => {
-      if (path !== state.focused) setState({ ...state, focused: path });
+      if (path !== focused) setState({ ...state, focused: path });
     },
     registerItem: (path, element) => {
       items.current.set(path, element);
@@ -58,9 +78,23 @@ export function FileTree({ root, selectedPath, onSelect }: Props) {
   };
 
   return (
-    <ul className="tree" role="tree" onKeyDown={handleKeyDown}>
-      <TreeRow node={root} depth={0} {...rowProps} />
-    </ul>
+    <>
+      <input
+        className="tree-filter"
+        type="search"
+        placeholder="Filter"
+        aria-label="Filter files"
+        value={state.query}
+        onChange={handleFilterChange}
+      />
+      {shown ? (
+        <ul className="tree" role="tree" onKeyDown={handleKeyDown}>
+          <TreeRow node={shown} depth={0} {...rowProps} />
+        </ul>
+      ) : (
+        <p className="empty">No files match.</p>
+      )}
+    </>
   );
 }
 
