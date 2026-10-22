@@ -59,3 +59,8 @@ const PREVIEW_MESSAGES = {
 export function formatPreviewMessage(kind: keyof typeof PREVIEW_MESSAGES): string {
   return PREVIEW_MESSAGES[kind];
 }
+
+/** Text of an image placeholder: its alt text, or "Image" when it has none. */
+export function formatImagePlaceholder(alt: string): string {
+  return alt.trim() ? alt : 'Image';
+}

@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { extension, fileType, formatBytes, formatLineCount, formatPreviewMessage, formatRelativeTime } from './format';
+import {
+  extension,
+  fileType,
+  formatBytes,
+  formatImagePlaceholder,
+  formatLineCount,
+  formatPreviewMessage,
+  formatRelativeTime,
+} from './format';
 import { formatExif } from './image';
 
 describe('formatBytes', () => {
@@ -63,5 +71,13 @@ describe('formatPreviewMessage', () => {
     expect(formatPreviewMessage('loading')).toBe('Loading…');
     expect(formatPreviewMessage('too-large')).toBe('File too large to preview');
     expect(formatPreviewMessage('empty')).toBe('Empty file');
+  });
+});
+
+describe('formatImagePlaceholder', () => {
+  it('shows the alt text, or "Image" when blank', () => {
+    expect(formatImagePlaceholder('logo')).toBe('logo');
+    expect(formatImagePlaceholder('')).toBe('Image');
+    expect(formatImagePlaceholder('   ')).toBe('Image');
   });
 });

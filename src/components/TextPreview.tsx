@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react';
 import { formatPreviewMessage, PREVIEW_TITLE } from '../lib/format';
 import { previewPlan } from '../lib/preview';
+import { MarkdownView } from './MarkdownView';
 import { PlainTextView } from './PlainTextView';
 
 type ReadResult = { text: string } | 'failed' | null;
@@ -33,7 +34,7 @@ export function TextPreview({ file }: { file: File }) {
   let body;
   if (plan === 'too-large' || plan === 'empty') body = <Message text={formatPreviewMessage(plan)} />;
   else if (result === null) body = <Message text={formatPreviewMessage('loading')} />;
-  // Markdown shows as plain text until the rendered view exists.
+  else if (plan === 'markdown') body = <MarkdownView text={result.text} />;
   else body = <PlainTextView text={result.text} />;
 
   return (

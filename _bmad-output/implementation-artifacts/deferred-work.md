@@ -15,3 +15,9 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-2-typescript-files-are-text.md`
   summary: The Type row still shows `video/mp2t` for TypeScript files that now show a Lines row and a text preview.
   evidence: `fileType()` in `src/lib/format.ts` prints the browser MIME type; the story only changed text detection. Needs an owner decision on what the Type row should say.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-3-read-markdown-formatted-safely.md`
+  summary: A hostile Markdown file can freeze the tab while `marked.lexer` runs on the main thread (`"**a ".repeat(10000)`, 40 KB, takes ~8.5 s; 100 KB ~53 s).
+  evidence: Measured with marked 18.1.1 in Node; a realistic 1 MB README lexes in ~144 ms. Owner chose to record it as a known risk (nothing runs, nothing leaves the page). A fix would parse in a Web Worker with a time budget and fall back to plain text — a separate story.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-3-read-markdown-formatted-safely.md`
+  summary: `TextPreview` routing (Markdown plan → `MarkdownView`, read failure, stale read) still has no automated test.
+  evidence: Rendering of `MarkdownView` is now covered with `renderToStaticMarkup`; `TextPreview` reads files in an effect, which static rendering cannot exercise without a DOM test environment (a new dependency).

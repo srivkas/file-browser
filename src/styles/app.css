@@ -136,3 +136,66 @@ body {
   overflow-wrap: anywhere;
   tab-size: var(--tab-size);
 }
+
+/* Markdown preview */
+.markdown { max-width: var(--reading-max-width); line-height: var(--line-height-read); overflow-wrap: break-word; }
+.markdown > *, .markdown li > *, .markdown blockquote > * { margin: 0 0 var(--space-3); }
+.markdown > :last-child, .markdown li > :last-child, .markdown blockquote > :last-child { margin-bottom: 0; }
+.markdown h1, .markdown h2, .markdown h3, .markdown h4, .markdown h5, .markdown h6 {
+  margin-top: var(--space-4);
+  font-weight: 600;
+  line-height: var(--line-height-heading);
+}
+.markdown > :first-child, .markdown li > :first-child, .markdown blockquote > :first-child { margin-top: 0; }
+.markdown h1, .markdown h2 { padding-bottom: var(--space-1); border-bottom: 1px solid var(--color-border); }
+.markdown h1 { font-size: var(--font-size-xl); }
+.markdown h2 { font-size: var(--font-size-lg); }
+.markdown h3, .markdown h4, .markdown h5, .markdown h6 { font-size: var(--font-size-md); }
+.markdown ul, .markdown ol { padding-left: var(--space-4); }
+.markdown li + li { margin-top: var(--space-1); }
+.markdown .md-task { list-style: none; }
+.markdown .md-task > input { accent-color: var(--color-accent); margin: 0 var(--space-2) 0 0; vertical-align: middle; }
+.markdown .md-task > input + p { display: inline; }
+.markdown code {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  background: var(--color-sidebar);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius);
+}
+.markdown pre {
+  background: var(--color-sidebar);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  tab-size: var(--tab-size);
+}
+.markdown pre code { padding: 0; background: none; }
+.markdown blockquote {
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0 var(--space-3);
+  border-left: var(--space-1) solid var(--color-border);
+  color: var(--color-muted);
+}
+.markdown hr { border: 0; border-top: 1px solid var(--color-border); }
+/* A wide table scrolls sideways inside its own wrapper: the only sideways scroll. */
+.md-table-wrap { overflow-x: auto; }
+.markdown table { border-collapse: collapse; }
+.markdown th, .markdown td { border: 1px solid var(--color-border); padding: var(--space-1) var(--space-2); text-align: start; }
+.markdown th { background: var(--color-sidebar); font-weight: 600; }
+.markdown .md-align-left { text-align: left; }
+.markdown .md-align-center { text-align: center; }
+.markdown .md-align-right { text-align: right; }
+.md-inert-link { color: var(--color-text); text-decoration: underline dotted var(--color-muted); cursor: default; }
+.md-image-placeholder {
+  display: inline-block;
+  padding: var(--space-2) var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+  line-height: normal;
+}
+.md-raw { white-space: pre-wrap; overflow-wrap: anywhere; }

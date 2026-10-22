@@ -6,8 +6,10 @@
   --font-size-sm: 12px;
   --font-size-md: 13px;
   --font-size-lg: 16px;
+  --font-size-xl: 20px;
   --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   --line-height-read: 1.5;
+  --line-height-heading: 1.25;
   --tab-size: 4;
 
   --space-1: 4px;
@@ -19,6 +21,7 @@
   --tree-indent: 16px;
   --tree-pane-width: 320px;
   --preview-max-height: 320px;
+  --reading-max-width: 720px;
 
   --color-bg: #ffffff;
   --color-sidebar: #f5f5f7;
