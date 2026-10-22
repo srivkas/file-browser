@@ -1,9 +1,11 @@
 import { marked, type Token, type Tokens } from 'marked';
-import { classifyLink, type LinkTarget } from './links';
+import { classifyImage, classifyLink, type ImageTarget, type LinkTarget } from './links';
 
 // The app's own Markdown model. It holds display-ready text only and no HTML.
-// Links keep their text and a verdict from links.ts: the only address in the
-// model is the normalized http(s) address of a web link. Images keep their alt text.
+// Links keep their text and a verdict from links.ts: the only web address in the
+// model is the normalized http(s) address of a web link. Images keep their alt text
+// and a verdict from links.ts: a tree path inside the open folder, or a placeholder,
+// never an address.
 
 export type MdAlign = 'left' | 'center' | 'right' | null;
 
@@ -13,7 +15,7 @@ export type MdInline =
   | { kind: 'code'; text: string }
   | { kind: 'break' }
   | { kind: 'link'; target: LinkTarget; children: MdInline[] }
-  | { kind: 'image'; alt: string };
+  | { kind: 'image'; alt: string; target: ImageTarget };
 
 export interface MdListItem {
   /** true / false for a task item, null for an ordinary item. */
@@ -67,25 +69,28 @@ export function decodeEntities(text: string): string {
   });
 }
 
-/** The file's Markdown model, or null when it cannot be parsed (e.g. nesting too deep for the lexer). */
-export function parseMarkdown(text: string): MdBlock[] | null {
+/**
+ * The Markdown model of the file at `filePath` (a tree path, used to resolve its images),
+ * or null when it cannot be parsed (e.g. nesting too deep for the lexer).
+ */
+export function parseMarkdown(text: string, filePath: string): MdBlock[] | null {
   try {
-    return toBlocks(marked.lexer(text, { gfm: true }));
+    return toBlocks(marked.lexer(text, { gfm: true }), filePath);
   } catch {
     return null;
   }
 }
 
-function toBlocks(tokens: Token[]): MdBlock[] {
+function toBlocks(tokens: Token[], filePath: string): MdBlock[] {
   const blocks: MdBlock[] = [];
   for (const token of tokens) {
-    const block = toBlock(token);
+    const block = toBlock(token, filePath);
     if (block) blocks.push(block);
   }
   return blocks;
 }
 
-function toBlock(token: Token): MdBlock | null {
+function toBlock(token: Token, filePath: string): MdBlock | null {
   switch (token.type) {
     case 'space':
     case 'def':
@@ -93,20 +98,20 @@ function toBlock(token: Token): MdBlock | null {
       return null;
     case 'heading': {
       const t = token as Tokens.Heading;
-      return { kind: 'heading', level: Math.min(Math.max(t.depth, 1), 6) as 1 | 2 | 3 | 4 | 5 | 6, children: toInlines(t.tokens) };
+      return { kind: 'heading', level: Math.min(Math.max(t.depth, 1), 6) as 1 | 2 | 3 | 4 | 5 | 6, children: toInlines(t.tokens, filePath) };
     }
     case 'paragraph':
-      return { kind: 'paragraph', children: toInlines((token as Tokens.Paragraph).tokens) };
+      return { kind: 'paragraph', children: toInlines((token as Tokens.Paragraph).tokens, filePath) };
     case 'text': {
       const t = token as Tokens.Text;
-      return { kind: 'plain', children: t.tokens ? toInlines(t.tokens) : [plainText(t.text)] };
+      return { kind: 'plain', children: t.tokens ? toInlines(t.tokens, filePath) : [plainText(t.text)] };
     }
     case 'html':
       return { kind: 'raw', text: (token as Tokens.HTML).text };
     case 'code':
       return { kind: 'code', text: (token as Tokens.Code).text };
     case 'blockquote':
-      return { kind: 'quote', blocks: toBlocks((token as Tokens.Blockquote).tokens) };
+      return { kind: 'quote', blocks: toBlocks((token as Tokens.Blockquote).tokens, filePath) };
     case 'list': {
       const t = token as Tokens.List;
       return {
@@ -115,7 +120,7 @@ function toBlock(token: Token): MdBlock | null {
         start: typeof t.start === 'number' ? t.start : 1,
         items: t.items.map((item) => ({
           checked: item.task ? Boolean(item.checked) : null,
-          blocks: toBlocks(item.tokens),
+          blocks: toBlocks(item.tokens, filePath),
         })),
       };
     }
@@ -126,8 +131,8 @@ function toBlock(token: Token): MdBlock | null {
       return {
         kind: 'table',
         align: t.align.map((a) => a ?? null),
-        header: t.header.map((cell) => toInlines(cell.tokens)),
-        rows: t.rows.map((row) => row.map((cell) => toInlines(cell.tokens))),
+        header: t.header.map((cell) => toInlines(cell.tokens, filePath)),
+        rows: t.rows.map((row) => row.map((cell) => toInlines(cell.tokens, filePath))),
       };
     }
     default:
@@ -136,18 +141,18 @@ function toBlock(token: Token): MdBlock | null {
   }
 }
 
-function toInlines(tokens: Token[] = []): MdInline[] {
-  return tokens.flatMap(toInline);
+function toInlines(tokens: Token[] | undefined, filePath: string): MdInline[] {
+  return (tokens ?? []).flatMap((token) => toInline(token, filePath));
 }
 
-function toInline(token: Token): MdInline | MdInline[] {
+function toInline(token: Token, filePath: string): MdInline | MdInline[] {
   switch (token.type) {
     case 'checkbox':
       return [];
     case 'text': {
       const t = token as Tokens.Text;
       // A text token can carry its own inline tokens; they replace it.
-      return t.tokens ? toInlines(t.tokens) : plainText(t.text);
+      return t.tokens ? toInlines(t.tokens, filePath) : plainText(t.text);
     }
     case 'escape':
       return { kind: 'text', text: (token as Tokens.Escape).text };
@@ -157,18 +162,22 @@ function toInline(token: Token): MdInline | MdInline[] {
     case 'strong':
     case 'em':
     case 'del':
-      return { kind: token.type, children: toInlines((token as Tokens.Strong).tokens) };
+      return { kind: token.type, children: toInlines((token as Tokens.Strong).tokens, filePath) };
     case 'codespan':
       return { kind: 'code', text: (token as Tokens.Codespan).text };
     case 'br':
       return { kind: 'break' };
     case 'link': {
       const t = token as Tokens.Link;
-      return { kind: 'link', target: classifyLink(decodeEntities(t.href)), children: toInlines(t.tokens) };
+      return { kind: 'link', target: classifyLink(decodeEntities(t.href)), children: toInlines(t.tokens, filePath) };
     }
     case 'image': {
       const t = token as Tokens.Image;
-      return { kind: 'image', alt: t.tokens?.length ? flatten(toInlines(t.tokens)) : decodeEntities(t.text) };
+      return {
+        kind: 'image',
+        alt: t.tokens?.length ? flatten(toInlines(t.tokens, filePath)) : decodeEntities(t.text),
+        target: classifyImage(decodeEntities(t.href), filePath),
+      };
     }
     default:
       return 'text' in token && typeof token.text === 'string' ? plainText(token.text) : [];

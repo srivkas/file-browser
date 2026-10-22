@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { buildTree } from '../lib/tree';
 import { MarkdownView } from './MarkdownView';
 
-const render = (text: string) => renderToStaticMarkup(<MarkdownView text={text} />);
+const file = (path: string, type: string) => ({ path, file: new File(['x'], path.split('/').pop()!, { type }) });
+const root = buildTree([
+  file('proj/README.md', 'text/markdown'),
+  file('proj/a.png', 'image/png'),
+  file('proj/docs/b.png', 'image/png'),
+  file('proj/notes.txt', 'text/plain'),
+])!;
+const render = (text: string, filePath = 'proj/README.md') =>
+  renderToStaticMarkup(<MarkdownView text={text} root={root} filePath={filePath} />);
+const tagsOf = (html: string) => html.match(/<[^>]+>/g) ?? [];
 
 describe('MarkdownView', () => {
   it('renders a web link that opens a new tab with no opener or referrer', () => {
@@ -34,7 +44,7 @@ describe('MarkdownView', () => {
     expect(html).not.toMatch(/<img[\s>]/i);
     expect(html).not.toMatch(/<iframe[\s>]/i);
     // Raw HTML shows escaped as text, so only real tags are checked for attributes.
-    const tags = html.match(/<[^>]+>/g) ?? [];
+    const tags = tagsOf(html);
     expect(tags.filter((tag) => /\bsrc=/i.test(tag))).toEqual([]);
     // The only anchors are the two http(s) autolinks, each opening a new tab safely.
     const anchors = tags.filter((tag) => /^<a[\s>]/i.test(tag));
@@ -77,6 +87,27 @@ describe('MarkdownView', () => {
     expect(render('![](https://e/b.png)')).toContain(
       '<span class="md-image-placeholder" role="img" aria-label="Image">Image</span>',
     );
+  });
+
+  it('renders no src at all for a found local image in a static render', () => {
+    // The blob: URL is made in an effect, which a static render never runs, so no src can appear here.
+    // That the shown src is a blob: URL (and is revoked) is checked by hand in the browser.
+    const html = render('![a](a.png) ![b](/docs/b.png) ![c](./docs/b.png?v=1)');
+    const srcs = tagsOf(html).flatMap((tag) => [...tag.matchAll(/\bsrc="([^"]*)"/gi)].map((m) => m[1]));
+    expect(srcs).toEqual([]);
+    expect(html).not.toContain('a.png');
+    expect(html).not.toContain('b.png');
+    expect(html).not.toContain('md-image-placeholder');
+  });
+
+  it('shows placeholders for missing, non-image, escaping and remote images', () => {
+    const html = render(
+      '![m](missing.png) ![n](../notes.txt) ![e](../../x.png) ![r](/../x.png) ![h](https://e.com/a.png) ![p](//e.com/a.png) ![d](data:image/png;base64,AAAA) ![f](file:///a.png)',
+      'proj/docs/guide.md',
+    );
+    expect(html.match(/class="md-image-placeholder"/g)).toHaveLength(8);
+    expect(html).not.toMatch(/<img[\s>]/i);
+    expect(tagsOf(html).filter((tag) => /\bsrc=/i.test(tag))).toEqual([]);
   });
 
   it('falls back to the plain view when the text cannot be parsed', () => {

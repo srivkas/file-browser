@@ -5,16 +5,19 @@ import { PREVIEW_MAX_BYTES, previewPlan } from './preview';
 const text = (t: string) => ({ kind: 'text', text: t });
 const plain = (t: string) => ({ kind: 'plain', children: [text(t)] });
 const para = (...children: unknown[]) => [{ kind: 'paragraph', children }];
-const first = (md: string) => parseMarkdown(md)?.[0];
+const F = 'proj/README.md';
+const local = (path: string) => ({ kind: 'local', path });
+const placeholder = { kind: 'placeholder' };
+const first = (md: string) => parseMarkdown(md, F)?.[0];
 
 describe('parseMarkdown', () => {
   it('turns a heading into its level and text, without the #', () => {
-    expect(parseMarkdown('# Title')).toEqual([{ kind: 'heading', level: 1, children: [text('Title')] }]);
+    expect(parseMarkdown('# Title', F)).toEqual([{ kind: 'heading', level: 1, children: [text('Title')] }]);
     expect(first('### Three')).toMatchObject({ kind: 'heading', level: 3 });
   });
 
   it('keeps strong, em, del and inline code', () => {
-    expect(parseMarkdown('**b** _i_ ~~s~~ `c`')).toEqual(
+    expect(parseMarkdown('**b** _i_ ~~s~~ `c`', F)).toEqual(
       para(
         { kind: 'strong', children: [text('b')] },
         text(' '),
@@ -84,64 +87,79 @@ describe('parseMarkdown', () => {
   });
 
   it('keeps a code block literal, without its language', () => {
-    expect(parseMarkdown('```js\na<b &amp;\n```')).toEqual([{ kind: 'code', text: 'a<b &amp;' }]);
-    expect(parseMarkdown('`a<b &amp;`')).toEqual(para({ kind: 'code', text: 'a<b &amp;' }));
+    expect(parseMarkdown('```js\na<b &amp;\n```', F)).toEqual([{ kind: 'code', text: 'a<b &amp;' }]);
+    expect(parseMarkdown('`a<b &amp;`', F)).toEqual(para({ kind: 'code', text: 'a<b &amp;' }));
   });
 
   it('keeps blockquotes and rules', () => {
-    expect(parseMarkdown('> q\n\n---')).toEqual([{ kind: 'quote', blocks: para(text('q')) }, { kind: 'rule' }]);
+    expect(parseMarkdown('> q\n\n---', F)).toEqual([{ kind: 'quote', blocks: para(text('q')) }, { kind: 'rule' }]);
   });
 
   it('keeps hard line breaks', () => {
-    expect(parseMarkdown('a  \nb')).toEqual(para(text('a'), { kind: 'break' }, text('b')));
+    expect(parseMarkdown('a  \nb', F)).toEqual(para(text('a'), { kind: 'break' }, text('b')));
   });
 
   it('shows raw HTML literally, block or inline', () => {
-    expect(parseMarkdown('<script>alert(1)</script>')).toEqual([{ kind: 'raw', text: '<script>alert(1)</script>' }]);
-    expect(parseMarkdown('<img src=x onerror=alert(1)>')).toEqual([{ kind: 'raw', text: '<img src=x onerror=alert(1)>' }]);
-    expect(parseMarkdown('say <b>hi</b>')).toEqual(para(text('say '), text('<b>'), text('hi'), text('</b>')));
+    expect(parseMarkdown('<script>alert(1)</script>', F)).toEqual([{ kind: 'raw', text: '<script>alert(1)</script>' }]);
+    expect(parseMarkdown('<img src=x onerror=alert(1)>', F)).toEqual([{ kind: 'raw', text: '<img src=x onerror=alert(1)>' }]);
+    expect(parseMarkdown('say <b>hi</b>', F)).toEqual(para(text('say '), text('<b>'), text('hi'), text('</b>')));
   });
 
   it('decodes entities in text', () => {
-    expect(parseMarkdown('&amp; &copy; &#169;')).toEqual(para(text('& © ©')));
+    expect(parseMarkdown('&amp; &copy; &#169;', F)).toEqual(para(text('& © ©')));
   });
 
   it('decodes numeric entities, including an encoded &', () => {
-    expect(parseMarkdown('&#38; &#x26; &#60;')).toEqual(para(text('& & <')));
+    expect(parseMarkdown('&#38; &#x26; &#60;', F)).toEqual(para(text('& & <')));
   });
 
   it('gives null when the input is too deeply nested to parse', () => {
-    expect(parseMarkdown('>'.repeat(2000) + ' a')).toBeNull();
+    expect(parseMarkdown('>'.repeat(2000) + ' a', F)).toBeNull();
   });
 
   it('keeps backslash escapes literal', () => {
-    expect(parseMarkdown('\\*a\\* \\&amp;')).toEqual(para(text('*'), text('a'), text('*'), text(' '), text('&'), text('amp;')));
+    expect(parseMarkdown('\\*a\\* \\&amp;', F)).toEqual(para(text('*'), text('a'), text('*'), text(' '), text('&'), text('amp;')));
   });
 
   it('keeps a link\'s text with its verdict: web for http(s), inert otherwise', () => {
     const inert = { kind: 'inert' };
-    expect(parseMarkdown('[l](docs/a.md)')).toEqual(para({ kind: 'link', target: inert, children: [text('l')] }));
-    expect(parseMarkdown('https://x.com')).toEqual(
+    expect(parseMarkdown('[l](docs/a.md)', F)).toEqual(para({ kind: 'link', target: inert, children: [text('l')] }));
+    expect(parseMarkdown('https://x.com', F)).toEqual(
       para({ kind: 'link', target: { kind: 'web', href: 'https://x.com/' }, children: [text('https://x.com')] }),
     );
-    expect(parseMarkdown('[x](javascript:alert(1))')).toEqual(para({ kind: 'link', target: inert, children: [text('x')] }));
-    expect(parseMarkdown('[**b**](a.md)')).toEqual(
+    expect(parseMarkdown('[x](javascript:alert(1))', F)).toEqual(para({ kind: 'link', target: inert, children: [text('x')] }));
+    expect(parseMarkdown('[**b**](a.md)', F)).toEqual(
       para({ kind: 'link', target: inert, children: [{ kind: 'strong', children: [text('b')] }] }),
     );
   });
 
-  it('turns every image into its alt text only', () => {
-    expect(parseMarkdown('![logo](a.png)')).toEqual(para({ kind: 'image', alt: 'logo' }));
-    expect(parseMarkdown('![](https://e/b.png)')).toEqual(para({ kind: 'image', alt: '' }));
-    expect(parseMarkdown('![a *b* &amp; c](c.png)')).toEqual(para({ kind: 'image', alt: 'a b & c' }));
+  it('keeps an image\'s alt text with its verdict: a local tree path or a placeholder', () => {
+    expect(parseMarkdown('![logo](a.png)', F)).toEqual(para({ kind: 'image', alt: 'logo', target: local('proj/a.png') }));
+    expect(parseMarkdown('![](https://e/b.png)', F)).toEqual(para({ kind: 'image', alt: '', target: placeholder }));
+    expect(parseMarkdown('![a *b* &amp; c](c.png)', F)).toEqual(para({ kind: 'image', alt: 'a b & c', target: local('proj/c.png') }));
+  });
+
+  it('resolves images against the Markdown file\'s own folder', () => {
+    const image = (md: string, file: string) => {
+      const block = parseMarkdown(md, file)?.[0];
+      return block?.kind === 'paragraph' ? block.children[0] : undefined;
+    };
+    expect(image('![x](img/a.png)', 'proj/docs/guide.md')).toEqual({ kind: 'image', alt: 'x', target: local('proj/docs/img/a.png') });
+    expect(image('![x](/img/a.png)', 'proj/docs/guide.md')).toEqual({ kind: 'image', alt: 'x', target: local('proj/img/a.png') });
+  });
+
+  it('decodes entities and keeps the <…> form\'s space in an image path', () => {
+    expect(parseMarkdown('![s](a&amp;b.png)', F)).toEqual(para({ kind: 'image', alt: 's', target: local('proj/a&b.png') }));
+    expect(parseMarkdown('![s](<my shot.png>)', F)).toEqual(para({ kind: 'image', alt: 's', target: local('proj/my shot.png') }));
+    expect(parseMarkdown('![s](my%20shot.png)', F)).toEqual(para({ kind: 'image', alt: 's', target: local('proj/my shot.png') }));
   });
 
   it('skips link reference definitions', () => {
-    expect(parseMarkdown('[r]: https://e.com')).toEqual([]);
+    expect(parseMarkdown('[r]: https://e.com', F)).toEqual([]);
   });
 
   it('gives nothing for empty text', () => {
-    expect(parseMarkdown('')).toEqual([]);
+    expect(parseMarkdown('', F)).toEqual([]);
   });
 
   it('keeps no address but http(s) web links in the model of a hostile file', () => {
@@ -154,10 +172,10 @@ describe('parseMarkdown', () => {
       '[ref]: javascript:alert(2)',
       '[img]: https://evil.example/i.png',
     ].join('\n\n');
-    const model: MdBlock[] | null = parseMarkdown(hostile);
+    const model: MdBlock[] | null = parseMarkdown(hostile, F);
     expect(model).not.toBeNull();
     const json = JSON.stringify(model);
-    expect(json).not.toMatch(/src/i);
+    expect(json).not.toMatch(/"src"/i);
     expect(json).not.toMatch(/javascript:|vbscript|data:|file:|mailto:/i);
     // Every address in the model is a normalized http(s) one.
     const hrefs = [...json.matchAll(/"href":"([^"]*)"/g)].map((m) => m[1]);

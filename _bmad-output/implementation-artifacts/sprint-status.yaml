@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-22-2026 13:31
-last_updated: 10-22-2026 14:18
+last_updated: 10-22-2026 14:28
 project: file-browser
 project_key: NOKEY
 tracking_system: file-system
@@ -39,6 +39,6 @@ development_status:
   1-1-read-a-plain-text-file-with-line-numbers: done
   1-2-typescript-files-are-text: done
   1-3-read-markdown-formatted-safely: done
-  1-4-open-web-links-from-a-readme: review
-  1-5-show-a-readme-s-own-images: backlog
+  1-4-open-web-links-from-a-readme: done
+  1-5-show-a-readme-s-own-images: review
   epic-1-retrospective: optional

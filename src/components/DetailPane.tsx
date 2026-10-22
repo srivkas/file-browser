@@ -1,12 +1,12 @@
 import { Fragment, useEffect, useState } from 'react';
-import type { FileNode } from '../lib/tree';
+import type { DirNode, FileNode } from '../lib/tree';
 import { fileType, formatBytes, formatDate, formatLineCount, formatRelativeTime } from '../lib/format';
 import { relativeTime } from '../lib/time';
 import { isImage, readExif, readImageDimensions, type ExifRow, type ImageDimensions } from '../lib/image';
 import { canCountLines, countLines } from '../lib/text';
 import { TextPreview } from './TextPreview';
 
-export function DetailPane({ node }: { node: FileNode }) {
+export function DetailPane({ node, root }: { node: FileNode; root: DirNode }) {
   const { file } = node;
   return (
     <div className="details">
@@ -23,7 +23,7 @@ export function DetailPane({ node }: { node: FileNode }) {
         {canCountLines(file) && <LineCount key={node.path} file={file} />}
       </dl>
       {/* key drops a stale read when the selection changes; suffixed so it differs from ImageDetails' key */}
-      <TextPreview key={`${node.path}#text`} file={file} />
+      <TextPreview key={`${node.path}#text`} file={file} root={root} filePath={node.path} />
       {/* key resets image state when the selection changes */}
       {isImage(file) && <ImageDetails key={node.path} file={file} />}
     </div>

@@ -201,4 +201,6 @@ body {
   font-size: var(--font-size-sm);
   line-height: normal;
 }
+/* Natural size, scaled down to the reading width, never up. */
+.md-image { max-width: 100%; height: auto; vertical-align: middle; }
 .md-raw { white-space: pre-wrap; overflow-wrap: anywhere; }

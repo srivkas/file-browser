@@ -32,7 +32,7 @@ export function App() {
         </nav>
         {/* key starts each selection scrolled to the top */}
         <section key={selected?.path} className="detail-pane" aria-label="File details">
-          {selected ? <DetailPane node={selected} /> : <p className="empty">Select a file to see its details.</p>}
+          {selected && root ? <DetailPane node={selected} root={root} /> : <p className="empty">Select a file to see its details.</p>}
         </section>
       </main>
     </div>

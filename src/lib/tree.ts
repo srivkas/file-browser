@@ -62,3 +62,19 @@ export function sortTree(dir: DirNode): void {
     if (child.kind === 'dir') sortTree(child);
   }
 }
+
+/** The file at a tree path such as `proj/img/a.png` (root folder name first), or null when there is none. */
+export function findFile(root: DirNode, path: string): File | null {
+  const [rootName, ...names] = path.split('/');
+  // NFC on both sides: a name typed in Markdown can differ in form from one on disk (NFD on older macOS).
+  const same = (a: string, b: string) => a.normalize('NFC') === b.normalize('NFC');
+  if (!same(rootName, root.name)) return null;
+  let node: TreeNode = root;
+  for (const name of names) {
+    if (node.kind !== 'dir') return null;
+    const child: TreeNode | undefined = node.children.find((c) => same(c.name, name));
+    if (!child) return null;
+    node = child;
+  }
+  return node.kind === 'file' ? node.file : null;
+}

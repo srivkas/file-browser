@@ -24,3 +24,9 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-4-open-web-links-from-a-readme.md`
   summary: Web links are told apart from text by colour alone (no underline at rest), while inert links show a dotted underline — a dead link looks more link-like than a live one.
   evidence: DESIGN.md and the approved mock specify accent colour with underline on hover only; WCAG 1.4.1 asks for a non-colour cue (accent #0a64d8 vs text #1d1d1f is ~2.9:1, under the 3:1 that colour-only links need). Needs an owner/UX decision, e.g. a solid underline at rest.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-5-show-a-readme-s-own-images.md`
+  summary: No automated test renders a found local image (`<img src="blob:…">`), checks object-URL revocation, or checks that `DetailPane` passes the tree path (`node.path`) down as `filePath`.
+  evidence: Tests run in Node with static rendering, where effects never run; covering this needs a DOM test environment (jsdom or happy-dom), a new dependency that needs the owner's OK. Verified by hand in the dev server: images show via blob URLs and all created URLs were revoked on switching files.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-5-show-a-readme-s-own-images.md`
+  summary: Local images have no size limit and no lazy loading; a README pointing at a very large image decodes it in full.
+  evidence: Text previews are capped at 1 MB but images are not. Rare in READMEs; a size cap or `loading="lazy"` would need a product decision.

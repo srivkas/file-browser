@@ -1,12 +1,13 @@
 import { useEffect, useId, useState } from 'react';
 import { formatPreviewMessage, PREVIEW_TITLE } from '../lib/format';
 import { previewPlan } from '../lib/preview';
+import type { DirNode } from '../lib/tree';
 import { MarkdownView } from './MarkdownView';
 import { PlainTextView } from './PlainTextView';
 
 type ReadResult = { text: string } | 'failed' | null;
 
-export function TextPreview({ file }: { file: File }) {
+export function TextPreview({ file, root, filePath }: { file: File; root: DirNode; filePath: string }) {
   const plan = previewPlan(file);
   const needsRead = plan === 'plain' || plan === 'markdown';
   const [result, setResult] = useState<ReadResult>(null);
@@ -34,7 +35,7 @@ export function TextPreview({ file }: { file: File }) {
   let body;
   if (plan === 'too-large' || plan === 'empty') body = <Message text={formatPreviewMessage(plan)} />;
   else if (result === null) body = <Message text={formatPreviewMessage('loading')} />;
-  else if (plan === 'markdown') body = <MarkdownView text={result.text} />;
+  else if (plan === 'markdown') body = <MarkdownView text={result.text} root={root} filePath={filePath} />;
   else body = <PlainTextView text={result.text} />;
 
   return (
