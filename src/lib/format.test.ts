@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extension, fileType, formatBytes, formatLineCount, formatRelativeTime } from './format';
+import { extension, fileType, formatBytes, formatLineCount, formatPreviewMessage, formatRelativeTime } from './format';
 import { formatExif } from './image';
 
 describe('formatBytes', () => {
@@ -55,5 +55,13 @@ describe('formatLineCount', () => {
     expect(formatLineCount(0)).toBe('0');
     expect(formatLineCount(1204)).toBe('1,204');
     expect(formatLineCount(1234567)).toBe('1,234,567');
+  });
+});
+
+describe('formatPreviewMessage', () => {
+  it('one line per preview state', () => {
+    expect(formatPreviewMessage('loading')).toBe('Loading…');
+    expect(formatPreviewMessage('too-large')).toBe('File too large to preview');
+    expect(formatPreviewMessage('empty')).toBe('Empty file');
   });
 });

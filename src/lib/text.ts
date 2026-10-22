@@ -44,6 +44,12 @@ export function isTextFile(file: File): boolean {
   return TEXT_EXTENSIONS.has(extension(file.name));
 }
 
+/** True for text files named .md or .markdown. */
+export function isMarkdownFile(file: File): boolean {
+  const ext = extension(file.name);
+  return (ext === 'md' || ext === 'markdown') && isTextFile(file);
+}
+
 /** True when the file is text and small enough to read for a line count. */
 export function canCountLines(file: File): boolean {
   return isTextFile(file) && file.size <= MAX_LINE_COUNT_BYTES;
@@ -55,4 +61,12 @@ export function countLines(text: string): number {
   let lines = 0;
   for (let i = text.indexOf('\n'); i !== -1; i = text.indexOf('\n', i + 1)) lines++;
   return text.endsWith('\n') ? lines : lines + 1;
+}
+
+/** Lines by the same rule as countLines: a trailing newline doesn't start a new line. */
+export function splitLines(text: string): string[] {
+  if (text === '') return [];
+  const lines = text.split(/\r?\n/);
+  if (text.endsWith('\n')) lines.pop();
+  return lines;
 }

@@ -4,6 +4,7 @@ import { fileType, formatBytes, formatDate, formatLineCount, formatRelativeTime 
 import { relativeTime } from '../lib/time';
 import { isImage, readExif, readImageDimensions, type ExifRow, type ImageDimensions } from '../lib/image';
 import { canCountLines, countLines } from '../lib/text';
+import { TextPreview } from './TextPreview';
 
 export function DetailPane({ node }: { node: FileNode }) {
   const { file } = node;
@@ -21,6 +22,8 @@ export function DetailPane({ node }: { node: FileNode }) {
         {/* key resets the count when the selection changes */}
         {canCountLines(file) && <LineCount key={node.path} file={file} />}
       </dl>
+      {/* key drops a stale read when the selection changes; suffixed so it differs from ImageDetails' key */}
+      <TextPreview key={`${node.path}#text`} file={file} />
       {/* key resets image state when the selection changes */}
       {isImage(file) && <ImageDetails key={node.path} file={file} />}
     </div>

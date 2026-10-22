@@ -46,3 +46,16 @@ export function fileType(file: File): string {
   const ext = extension(file.name);
   return ext ? `.${ext} file` : 'Unknown';
 }
+
+export const PREVIEW_TITLE = 'Preview';
+
+const PREVIEW_MESSAGES = {
+  loading: 'Loading…',
+  'too-large': 'File too large to preview',
+  empty: 'Empty file',
+} as const;
+
+/** The one-line message shown in place of preview content. */
+export function formatPreviewMessage(kind: keyof typeof PREVIEW_MESSAGES): string {
+  return PREVIEW_MESSAGES[kind];
+}

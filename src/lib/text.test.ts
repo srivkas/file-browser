@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canCountLines, countLines, isTextFile, MAX_LINE_COUNT_BYTES } from './text';
+import { canCountLines, countLines, isMarkdownFile, isTextFile, MAX_LINE_COUNT_BYTES, splitLines } from './text';
 
 describe('countLines', () => {
   it('empty file has 0 lines', () => {
@@ -63,5 +63,46 @@ describe('canCountLines', () => {
 
   it('skips binary files', () => {
     expect(canCountLines(new File(['x'], 'a.jpg', { type: 'image/jpeg' }))).toBe(false);
+  });
+});
+
+describe('isMarkdownFile', () => {
+  const file = (name: string, type = '') => new File(['x'], name, { type });
+
+  it('matches .md and .markdown text files', () => {
+    expect(isMarkdownFile(file('README.md'))).toBe(true);
+    expect(isMarkdownFile(file('notes.MARKDOWN'))).toBe(true);
+    expect(isMarkdownFile(file('README.md', 'text/markdown'))).toBe(true);
+  });
+
+  it('rejects other files', () => {
+    expect(isMarkdownFile(file('notes.txt'))).toBe(false);
+    expect(isMarkdownFile(file('README'))).toBe(false);
+    expect(isMarkdownFile(file('weird.md', 'image/png'))).toBe(false);
+  });
+});
+
+describe('splitLines', () => {
+  it('empty text has no lines', () => {
+    expect(splitLines('')).toEqual([]);
+  });
+
+  it('trailing newline does not add a line', () => {
+    expect(splitLines('a\nb\n')).toEqual(['a', 'b']);
+    expect(splitLines('a\nb')).toEqual(['a', 'b']);
+  });
+
+  it('a lone newline is one blank line', () => {
+    expect(splitLines('\n')).toEqual(['']);
+  });
+
+  it('Windows line endings', () => {
+    expect(splitLines('one\r\ntwo\r\n')).toEqual(['one', 'two']);
+  });
+
+  it('agrees with countLines', () => {
+    for (const text of ['', 'a', 'a\n', '\n', 'a\n\n\nb', 'x\r\ny\r\n']) {
+      expect(splitLines(text).length).toBe(countLines(text));
+    }
   });
 });

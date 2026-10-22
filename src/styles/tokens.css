@@ -6,6 +6,9 @@
   --font-size-sm: 12px;
   --font-size-md: 13px;
   --font-size-lg: 16px;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --line-height-read: 1.5;
+  --tab-size: 4;
 
   --space-1: 4px;
   --space-2: 8px;

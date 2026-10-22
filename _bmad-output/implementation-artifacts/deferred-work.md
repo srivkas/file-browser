@@ -1,0 +1,14 @@
+# Deferred work
+
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-1-read-a-plain-text-file-with-line-numbers.md`
+  summary: A 1 MB text file made of very short lines renders one row per line and can freeze the tab (~14 s for 1,048,576 blank lines).
+  evidence: Measured in the dev server; a realistic 30,000-line 1 MB log takes ~0.6 s. Needs an owner decision (row cap with a message, or virtualization), since the UX asks for full natural height.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-1-read-a-plain-text-file-with-line-numbers.md`
+  summary: Preview state messages use a `role="status"` element that mounts already filled, which some screen readers do not announce.
+  evidence: Unverified (medium if true); settle with VoiceOver/NVDA. A reliable fix needs a persistent live region outside the keyed detail pane.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-1-read-a-plain-text-file-with-line-numbers.md`
+  summary: Component behaviour (Loading, stale-read drop, read failure, no section for non-text files) has no automated test.
+  evidence: The project has no DOM test environment; adding one needs an approved dependency. Rows were verified by hand.
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-1-read-a-plain-text-file-with-line-numbers.md`
+  summary: Pre-existing bug — `ModifiedDate` and `LineCount` in `DetailPane.tsx` are sibling elements with the same `key={node.path}`; React logs a duplicate-key error for every text file.
+  evidence: Present at the baseline commit; reported, not fixed (outside the story).
