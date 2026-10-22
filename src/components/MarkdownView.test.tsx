@@ -5,7 +5,23 @@ import { MarkdownView } from './MarkdownView';
 const render = (text: string) => renderToStaticMarkup(<MarkdownView text={text} />);
 
 describe('MarkdownView', () => {
-  it('renders no link, image or URL attribute for a hostile file', () => {
+  it('renders a web link that opens a new tab with no opener or referrer', () => {
+    expect(render('[site](https://example.com)')).toContain(
+      '<a class="md-web-link" href="https://example.com/" target="_blank" rel="noopener noreferrer">site</a>',
+    );
+    expect(render('<https://example.com>')).toContain('href="https://example.com/"');
+  });
+
+  it('renders inert links as text, with no anchor', () => {
+    for (const md of ['[s](docs/setup.md)', '[h](#setup)', '[j](javascript:alert(1))', '[m](mailto:a@b.co)', '[p](//evil.example)', '[x](javascript://example.com/%0Aalert(1))']) {
+      const html = render(md);
+      expect(html).toContain('class="md-inert-link"');
+      expect(html).not.toMatch(/<a[\s>]/i);
+      expect(html).not.toMatch(/href=/i);
+    }
+  });
+
+  it('renders no image, frame or non-web address for a hostile file', () => {
     const html = render(
       [
         '[x](javascript:alert(1)) [d](docs/a.md) https://x.com <https://y.com> [r][ref]',
@@ -15,12 +31,18 @@ describe('MarkdownView', () => {
         '[ref]: javascript:alert(2)',
       ].join('\n\n'),
     );
-    expect(html).not.toMatch(/<a[\s>]/i);
     expect(html).not.toMatch(/<img[\s>]/i);
     expect(html).not.toMatch(/<iframe[\s>]/i);
     // Raw HTML shows escaped as text, so only real tags are checked for attributes.
     const tags = html.match(/<[^>]+>/g) ?? [];
-    expect(tags.filter((tag) => /\b(href|src)=/i.test(tag))).toEqual([]);
+    expect(tags.filter((tag) => /\bsrc=/i.test(tag))).toEqual([]);
+    // The only anchors are the two http(s) autolinks, each opening a new tab safely.
+    const anchors = tags.filter((tag) => /^<a[\s>]/i.test(tag));
+    expect(anchors).toEqual([
+      '<a class="md-web-link" href="https://x.com/" target="_blank" rel="noopener noreferrer">',
+      '<a class="md-web-link" href="https://y.com/" target="_blank" rel="noopener noreferrer">',
+    ]);
+    expect(tags.filter((tag) => !/^<a[\s>]/i.test(tag) && /\bhref=/i.test(tag))).toEqual([]);
   });
 
   it('shows raw HTML escaped', () => {

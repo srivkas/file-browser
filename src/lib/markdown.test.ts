@@ -118,11 +118,16 @@ describe('parseMarkdown', () => {
     expect(parseMarkdown('\\*a\\* \\&amp;')).toEqual(para(text('*'), text('a'), text('*'), text(' '), text('&'), text('amp;')));
   });
 
-  it('turns every link into its text only', () => {
-    expect(parseMarkdown('[l](docs/a.md)')).toEqual(para({ kind: 'link', children: [text('l')] }));
-    expect(parseMarkdown('https://x.com')).toEqual(para({ kind: 'link', children: [text('https://x.com')] }));
-    expect(parseMarkdown('[x](javascript:alert(1))')).toEqual(para({ kind: 'link', children: [text('x')] }));
-    expect(parseMarkdown('[**b**](a.md)')).toEqual(para({ kind: 'link', children: [{ kind: 'strong', children: [text('b')] }] }));
+  it('keeps a link\'s text with its verdict: web for http(s), inert otherwise', () => {
+    const inert = { kind: 'inert' };
+    expect(parseMarkdown('[l](docs/a.md)')).toEqual(para({ kind: 'link', target: inert, children: [text('l')] }));
+    expect(parseMarkdown('https://x.com')).toEqual(
+      para({ kind: 'link', target: { kind: 'web', href: 'https://x.com/' }, children: [text('https://x.com')] }),
+    );
+    expect(parseMarkdown('[x](javascript:alert(1))')).toEqual(para({ kind: 'link', target: inert, children: [text('x')] }));
+    expect(parseMarkdown('[**b**](a.md)')).toEqual(
+      para({ kind: 'link', target: inert, children: [{ kind: 'strong', children: [text('b')] }] }),
+    );
   });
 
   it('turns every image into its alt text only', () => {
@@ -139,24 +144,26 @@ describe('parseMarkdown', () => {
     expect(parseMarkdown('')).toEqual([]);
   });
 
-  it('keeps no URL anywhere in the model of a hostile file', () => {
+  it('keeps no address but http(s) web links in the model of a hostile file', () => {
     const hostile = [
-      '[x](javascript:alert(1)) [y](JaVaScRiPt:alert(1) "t") [z][ref] <https://evil.example/a>',
+      '[x](javascript:alert(1)) [y](JaVaScRiPt:alert(1) "t") [z][ref] <https://evil.example/a> [w]( javascript:alert(3))',
       '![a](javascript:alert(1)) ![b](https://evil.example/track.png) ![c][img] ![d](data:image/png;base64,AAAA)',
-      '- [e](vbscript:msgbox) www.evil.example',
+      '- [e](vbscript:msgbox) www.example.org [p](//evil.example/p) [m](mailto:a@b.co)',
       '| [f](javascript:void(0)) |\n|-|\n| ![g](http://evil.example/g.png) |',
-      '> [h](file:///etc/passwd)',
+      '> [h](file:///etc/passwd) [d2](data:text/html,hi)',
       '[ref]: javascript:alert(2)',
       '[img]: https://evil.example/i.png',
     ].join('\n\n');
     const model: MdBlock[] | null = parseMarkdown(hostile);
     expect(model).not.toBeNull();
     const json = JSON.stringify(model);
-    expect(json).not.toMatch(/href/i);
     expect(json).not.toMatch(/src/i);
-    expect(json).not.toMatch(/javascript:/i);
-    // Only link text survives: an autolink shows its address as text, nothing else of a URL remains.
-    expect(json).not.toMatch(/track\.png|i\.png|data:|vbscript|file:/i);
+    expect(json).not.toMatch(/javascript:|vbscript|data:|file:|mailto:/i);
+    // Every address in the model is a normalized http(s) one.
+    const hrefs = [...json.matchAll(/"href":"([^"]*)"/g)].map((m) => m[1]);
+    expect(hrefs).toEqual(['https://evil.example/a', 'http://www.example.org/']);
+    // Images keep no address: evil.example appears only in the <https://evil.example/a> autolink, as its text and its href.
+    expect(json).not.toMatch(/track\.png|i\.png|g\.png|evil\.example\/p/i);
   });
 });
 
@@ -168,6 +175,14 @@ describe('decodeEntities', () => {
 
   it('leaves unknown entities as written', () => {
     expect(decodeEntities('&hearts; &AMP; & amp;')).toBe('&hearts; &AMP; & amp;');
+  });
+
+  it('decodes decimal and hex numeric references', () => {
+    expect(decodeEntities('&#58;&#x3A;&#X3a;&#38;&#x1F600;')).toBe(':::&😀');
+  });
+
+  it('leaves invalid numeric references as written', () => {
+    expect(decodeEntities('&#0; &#x110000; &#xZZ;')).toBe('&#0; &#x110000; &#xZZ;');
   });
 
   it('decodes once only', () => {

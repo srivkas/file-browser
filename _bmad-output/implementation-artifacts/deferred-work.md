@@ -21,3 +21,6 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-3-read-markdown-formatted-safely.md`
   summary: `TextPreview` routing (Markdown plan → `MarkdownView`, read failure, stale read) still has no automated test.
   evidence: Rendering of `MarkdownView` is now covered with `renderToStaticMarkup`; `TextPreview` reads files in an effect, which static rendering cannot exercise without a DOM test environment (a new dependency).
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-4-open-web-links-from-a-readme.md`
+  summary: Web links are told apart from text by colour alone (no underline at rest), while inert links show a dotted underline — a dead link looks more link-like than a live one.
+  evidence: DESIGN.md and the approved mock specify accent colour with underline on hover only; WCAG 1.4.1 asks for a non-colour cue (accent #0a64d8 vs text #1d1d1f is ~2.9:1, under the 3:1 that colour-only links need). Needs an owner/UX decision, e.g. a solid underline at rest.

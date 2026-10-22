@@ -188,6 +188,9 @@ body {
 .markdown .md-align-left { text-align: left; }
 .markdown .md-align-center { text-align: center; }
 .markdown .md-align-right { text-align: right; }
+.md-web-link { color: var(--color-accent); text-decoration: none; }
+.md-web-link:hover { text-decoration: underline; }
+.md-web-link:focus-visible { outline: var(--focus-ring-width) solid var(--color-accent); outline-offset: var(--focus-ring-width); }
 .md-inert-link { color: var(--color-text); text-decoration: underline dotted var(--color-muted); cursor: default; }
 .md-image-placeholder {
   display: inline-block;

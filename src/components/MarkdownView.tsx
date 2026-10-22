@@ -3,8 +3,9 @@ import { formatImagePlaceholder } from '../lib/format';
 import { parseMarkdown, type MdAlign, type MdBlock, type MdInline } from '../lib/markdown';
 import { PlainTextView } from './PlainTextView';
 
-// Renders the app's Markdown model with React elements only: no HTML strings,
-// no URLs. Links are inert text and images are placeholders.
+// Renders the app's Markdown model with React elements only: no HTML strings.
+// Web links open in a new tab with no opener and no referrer; every other link
+// is inert text. Images are placeholders.
 // Text the parser cannot handle falls back to the plain view.
 export function MarkdownView({ text }: { text: string }) {
   const blocks = useMemo(() => parseMarkdown(text), [text]);
@@ -128,6 +129,13 @@ function Inline({ inline }: { inline: MdInline }) {
     case 'break':
       return <br />;
     case 'link':
+      if (inline.target.kind === 'web') {
+        return (
+          <a className="md-web-link" href={inline.target.href} target="_blank" rel="noopener noreferrer">
+            <Inlines inlines={inline.children} />
+          </a>
+        );
+      }
       return (
         <span className="md-inert-link">
           <Inlines inlines={inline.children} />

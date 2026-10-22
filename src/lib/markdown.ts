@@ -1,7 +1,9 @@
 import { marked, type Token, type Tokens } from 'marked';
+import { classifyLink, type LinkTarget } from './links';
 
-// The app's own Markdown model. It holds display-ready text only: no URLs,
-// no HTML. Links keep their text, images keep their alt text.
+// The app's own Markdown model. It holds display-ready text only and no HTML.
+// Links keep their text and a verdict from links.ts: the only address in the
+// model is the normalized http(s) address of a web link. Images keep their alt text.
 
 export type MdAlign = 'left' | 'center' | 'right' | null;
 
@@ -10,7 +12,7 @@ export type MdInline =
   | { kind: 'strong' | 'em' | 'del'; children: MdInline[] }
   | { kind: 'code'; text: string }
   | { kind: 'break' }
-  | { kind: 'link'; children: MdInline[] }
+  | { kind: 'link'; target: LinkTarget; children: MdInline[] }
   | { kind: 'image'; alt: string };
 
 export interface MdListItem {
@@ -53,12 +55,16 @@ const NAMED_ENTITIES: Record<string, string> = {
 };
 
 /**
- * Decodes the common named entities; unknown ones stay as written.
- * The lexer decodes numeric entities itself, except that it re-escapes `&` (`&#38;`, `&#x26;`) as `&amp;`,
- * which this table turns back.
+ * Decodes numeric references and the common named entities, in one pass; unknown or invalid ones stay as written.
+ * The lexer decodes numeric entities in text itself, except that it re-escapes `&` (`&#38;`, `&#x26;`) as `&amp;`,
+ * which the named table turns back. In link addresses the lexer decodes nothing, so both kinds are needed there.
  */
 export function decodeEntities(text: string): string {
-  return text.replace(/&([a-zA-Z]+);/g, (match, name: string) => NAMED_ENTITIES[name] ?? match);
+  return text.replace(/&(#[0-9]{1,7}|#[xX][0-9a-fA-F]{1,6}|[a-zA-Z]+);/g, (match, name: string) => {
+    if (!name.startsWith('#')) return NAMED_ENTITIES[name] ?? match;
+    const code = name[1] === 'x' || name[1] === 'X' ? parseInt(name.slice(2), 16) : parseInt(name.slice(1), 10);
+    return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : match;
+  });
 }
 
 /** The file's Markdown model, or null when it cannot be parsed (e.g. nesting too deep for the lexer). */
@@ -156,8 +162,10 @@ function toInline(token: Token): MdInline | MdInline[] {
       return { kind: 'code', text: (token as Tokens.Codespan).text };
     case 'br':
       return { kind: 'break' };
-    case 'link':
-      return { kind: 'link', children: toInlines((token as Tokens.Link).tokens) };
+    case 'link': {
+      const t = token as Tokens.Link;
+      return { kind: 'link', target: classifyLink(decodeEntities(t.href)), children: toInlines(t.tokens) };
+    }
     case 'image': {
       const t = token as Tokens.Image;
       return { kind: 'image', alt: t.tokens?.length ? flatten(toInlines(t.tokens)) : decodeEntities(t.text) };
