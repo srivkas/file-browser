@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview mock</title>
+<style>
+/* Governs: DESIGN.md Components, Layout & Spacing; EXPERIENCE.md Component Patterns, State Patterns, Flow 1.
+   Token values copied from src/styles/tokens.css plus the four new tokens. Spines win on conflict. */
+:root {
+  color-scheme: light dark;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-size-sm: 12px; --font-size-md: 13px; --font-size-lg: 16px; --font-size-xl: 20px;
+  --line-height-read: 1.5;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --radius: 6px; --reading-max-width: 720px; --tree-pane-width: 320px;
+  --color-bg: #ffffff; --color-sidebar: #f5f5f7; --color-border: #d8d8dc;
+  --color-text: #1d1d1f; --color-muted: #6e6e73; --color-accent: #0a64d8; --color-accent-text: #fff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg: #1e1e1e; --color-sidebar: #262628; --color-border: #3a3a3c;
+    --color-text: #f2f2f7; --color-muted: #98989d; --color-accent: #0a84ff;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--color-sidebar); color: var(--color-text); font: var(--font-size-md)/1.4 var(--font-sans); padding: var(--space-4); }
+.caption { max-width: 1100px; margin: var(--space-4) auto var(--space-2); color: var(--color-muted); font-size: var(--font-size-sm); }
+.window { max-width: 1100px; margin: 0 auto; border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; background: var(--color-bg); display: flex; min-height: 520px; }
+.tree { width: var(--tree-pane-width); flex: none; background: var(--color-sidebar); border-right: 1px solid var(--color-border); padding: var(--space-2); }
+.tree div { padding: var(--space-1) var(--space-2); border-radius: var(--radius); }
+.tree .sel { background: var(--color-accent); color: var(--color-accent-text); }
+.tree .ind { padding-left: calc(var(--space-2) + 16px); }
+.pane { flex: 1; padding: var(--space-4); min-width: 0; }
+h2.title { margin: 0 0 var(--space-3); font-size: var(--font-size-lg); }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: var(--space-1) var(--space-3); margin: 0; }
+dt { color: var(--color-muted); } dd { margin: 0; }
+.muted { color: var(--color-muted); }
+.section-title { margin: var(--space-4) 0 var(--space-2); padding-top: var(--space-4); border-top: 1px solid var(--color-border); font-size: var(--font-size-md); font-weight: 600; }
+
+/* Rendered view */
+.md { max-width: var(--reading-max-width); line-height: var(--line-height-read); }
+.md > * { margin: 0 0 var(--space-3); }
+.md h1, .md h2 { padding-bottom: var(--space-1); border-bottom: 1px solid var(--color-border); font-weight: 600; line-height: 1.25; margin-top: var(--space-4); }
+.md h1 { font-size: var(--font-size-xl); margin-top: 0; } .md h2 { font-size: var(--font-size-lg); }
+.md ul { padding-left: var(--space-4); } .md ul.tasks { list-style: none; padding-left: 0; }
+.md input[type=checkbox] { accent-color: var(--color-accent); margin: 0 var(--space-2) 0 0; vertical-align: middle; }
+.md code { font-family: var(--font-mono); font-size: var(--font-size-sm); background: var(--color-sidebar); padding: 0 var(--space-1); border-radius: var(--radius); }
+.md pre { background: var(--color-sidebar); padding: var(--space-3); border-radius: var(--radius); white-space: pre-wrap; overflow-wrap: anywhere; }
+.md pre code { padding: 0; background: none; }
+.md table { border-collapse: collapse; display: block; overflow-x: auto; }
+.md th, .md td { border: 1px solid var(--color-border); padding: var(--space-1) var(--space-2); text-align: left; }
+.md th { background: var(--color-sidebar); font-weight: 600; }
+.md blockquote { border-left: var(--space-1) solid var(--color-border); color: var(--color-muted); padding: 0 var(--space-3); margin-left: 0; }
+.md a.web { color: var(--color-accent); text-decoration: none; } .md a.web:hover { text-decoration: underline; }
+.md .inert { color: var(--color-text); text-decoration: underline dotted var(--color-muted); cursor: default; }
+.placeholder { display: inline-block; border: 1px dashed var(--color-border); border-radius: var(--radius); padding: var(--space-1) var(--space-3); color: var(--color-muted); font-size: var(--font-size-sm); }
+
+/* Plain text view */
+.plain { border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; font: var(--font-size-sm)/var(--line-height-read) var(--font-mono); }
+.row { display: flex; }
+.num { flex: none; width: 4ch; text-align: right; padding: 0 var(--space-2); background: var(--color-sidebar); color: var(--color-muted); border-right: 1px solid var(--color-border); user-select: none; }
+.line { flex: 1; padding: 0 var(--space-2); white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; }
+
+.states { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+.states .window { min-height: 0; display: block; }
+@media (max-width: 760px) {
+  body { padding: var(--space-4) var(--space-4); }
+  .tree { display: none; }
+  .states { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<p class="caption">1 · Markdown file selected — rendered view (FR-9 to FR-15). Badge is a web image → placeholder; "docs/setup.md" is an inert link; the website link is a web link.</p>
+<div class="window">
+  <div class="tree">
+    <div>▾ course-project</div>
+    <div class="ind">▸ docs</div>
+    <div class="ind">▸ images</div>
+    <div class="ind">package.json</div>
+    <div class="ind sel">README.md</div>
+    <div class="ind">server.log</div>
+  </div>
+  <div class="pane">
+    <h2 class="title">README.md</h2>
+    <dl>
+      <dt>Size</dt><dd>1.8 KB</dd>
+      <dt>Type</dt><dd>Markdown</dd>
+      <dt>Modified</dt><dd>22 Oct 2026, 09:14 <span class="muted">(2 hours ago)</span></dd>
+      <dt>Lines</dt><dd>48</dd>
+    </dl>
+    <h3 class="section-title">Preview</h3>
+    <div class="md">
+      <h1>Course Project</h1>
+      <p><span class="placeholder">build status</span></p>
+      <p>A small app for practising the course exercises. See the <a class="web" href="#">project website</a> for the full syllabus, or read <span class="inert">docs/setup.md</span>.</p>
+      <h2>Setup</h2>
+      <ul class="tasks">
+        <li><input type="checkbox" checked disabled>Install Node 24</li>
+        <li><input type="checkbox" checked disabled>Clone the repository</li>
+        <li><input type="checkbox" disabled>Run <code>npm install</code></li>
+      </ul>
+      <h2>Commands</h2>
+      <table>
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td><code>npm run dev</code></td><td>Starts the dev server</td></tr>
+        <tr><td><code>npm run check</code></td><td>Typecheck, lint and tests</td></tr>
+      </table>
+      <pre><code>npm install
+npm run dev</code></pre>
+      <blockquote>Never commit without review.</blockquote>
+      <p>Raw HTML stays text: &lt;b&gt;hi&lt;/b&gt;</p>
+    </div>
+  </div>
+</div>
+
+<p class="caption">2 · Other text file selected — plain text view (FR-1). Line 3 is long and wraps under a single number.</p>
+<div class="window">
+  <div class="tree">
+    <div>▾ course-project</div>
+    <div class="ind">▸ docs</div>
+    <div class="ind">▸ images</div>
+    <div class="ind sel">package.json</div>
+    <div class="ind">README.md</div>
+    <div class="ind">server.log</div>
+  </div>
+  <div class="pane">
+    <h2 class="title">package.json</h2>
+    <dl>
+      <dt>Size</dt><dd>412 B</dd>
+      <dt>Type</dt><dd>JSON</dd>
+      <dt>Modified</dt><dd>20 Oct 2026, 17:02 <span class="muted">(2 days ago)</span></dd>
+      <dt>Lines</dt><dd>9</dd>
+    </dl>
+    <h3 class="section-title">Preview</h3>
+    <div class="plain">
+      <div class="row"><span class="num">1</span><span class="line">{</span></div>
+      <div class="row"><span class="num">2</span><span class="line">  "name": "course-project",</span></div>
+      <div class="row"><span class="num">3</span><span class="line">  "description": "A small app for practising the course exercises, with a deliberately long description line that wraps onto the next row and keeps a single line number",</span></div>
+      <div class="row"><span class="num">4</span><span class="line">  "scripts": {</span></div>
+      <div class="row"><span class="num">5</span><span class="line">    "dev": "vite",</span></div>
+      <div class="row"><span class="num">6</span><span class="line">    "check": "tsc -b &amp;&amp; eslint . &amp;&amp; vitest run"</span></div>
+      <div class="row"><span class="num">7</span><span class="line">  },</span></div>
+      <div class="row"><span class="num">8</span><span class="line">  "type": "module"</span></div>
+      <div class="row"><span class="num">9</span><span class="line">}</span></div>
+    </div>
+  </div>
+</div>
+
+<p class="caption">3 · State messages (FR-2, FR-3, FR-4). The details above stay complete in every state.</p>
+<div class="states">
+  <div class="window"><div class="pane">
+    <h2 class="title">notes.md</h2>
+    <dl><dt>Size</dt><dd>6.2 KB</dd><dt>Type</dt><dd>Markdown</dd></dl>
+    <h3 class="section-title">Preview</h3>
+    <p class="muted">Loading…</p>
+  </div></div>
+  <div class="window"><div class="pane">
+    <h2 class="title">server.log</h2>
+    <dl><dt>Size</dt><dd>5.0 MB</dd><dt>Type</dt><dd>Plain text</dd><dt>Lines</dt><dd>61,204</dd></dl>
+    <h3 class="section-title">Preview</h3>
+    <p class="muted">File too large to preview</p>
+  </div></div>
+  <div class="window"><div class="pane">
+    <h2 class="title">todo.txt</h2>
+    <dl><dt>Size</dt><dd>0 B</dd><dt>Type</dt><dd>Plain text</dd></dl>
+    <h3 class="section-title">Preview</h3>
+    <p class="muted">Empty file</p>
+  </div></div>
+</div>
+
+</body>
+</html>
