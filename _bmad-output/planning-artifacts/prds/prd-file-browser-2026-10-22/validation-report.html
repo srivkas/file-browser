@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<!--
+  PRD Validation Report — skeleton template.
+
+  This file is a starter the synthesis pass fills in directly. There is no
+  substitution engine. The LLM:
+    1. Reads {doc_workspace}/review-rubric.md and every review-{slug}.md from
+       additional reviewers.
+    2. Copies this skeleton.
+    3. Replaces the placeholder content (everything between TEMPLATE markers)
+       with the consolidated review, preserving the structure and CSS.
+    4. Writes the result to {doc_workspace}/validation-report.html.
+    5. Writes a markdown twin to {doc_workspace}/validation-report.md.
+
+  Visual rules the LLM must preserve:
+    - The container width, the color tokens, the typography.
+    - One dimension = one collapsible <section class="dimension">.
+    - Verdict pill uses the verdict-* class matching its judgment.
+    - Severity badge uses the sev-* class matching its level.
+    - Each extra reviewer (adversarial, etc.) gets its own collapsible section
+      below the rubric dimensions.
+    - The footer always shows the artifact paths and timestamp.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PRD Validation: Text &amp; Markdown preview</title>
+<style>
+  :root {
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --border: #e7e5e4;
+    --text: #1c1917;
+    --muted: #78716c;
+
+    --verdict-strong: #16a34a;
+    --verdict-adequate: #65a30d;
+    --verdict-thin: #d97706;
+    --verdict-broken: #dc2626;
+
+    --sev-low: #64748b;
+    --sev-medium: #ca8a04;
+    --sev-high: #ea580c;
+    --sev-critical: #dc2626;
+
+    --grade-exc: #16a34a;
+    --grade-good: #65a30d;
+    --grade-fair: #d97706;
+    --grade-poor: #dc2626;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px 64px; }
+
+  header.report-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .title h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .title .subtitle { color: var(--muted); font-size: 13px; margin-top: 4px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .grade {
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    color: white;
+    font-size: 15px;
+    white-space: nowrap;
+  }
+  .grade-excellent { background: var(--grade-exc); }
+  .grade-good { background: var(--grade-good); }
+  .grade-fair { background: var(--grade-fair); }
+  .grade-poor { background: var(--grade-poor); }
+
+  .synthesis {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--muted);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+    font-size: 15.5px;
+  }
+  .synthesis p { margin: 0 0 10px; }
+  .synthesis p:last-child { margin-bottom: 0; }
+
+  .dimension-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .dim-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .dim-card .dim-name { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .dim-card .dim-verdict { font-size: 14px; font-weight: 600; }
+
+  section.dimension, section.reviewer-section { margin-bottom: 14px; }
+  section.dimension details, section.reviewer-section details {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  section summary {
+    padding: 14px 20px;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  section summary::-webkit-details-marker { display: none; }
+  section summary::before {
+    content: "▸";
+    display: inline-block;
+    color: var(--muted);
+    transition: transform 0.15s ease;
+  }
+  section details[open] summary::before { transform: rotate(90deg); }
+  section summary h2 {
+    display: inline;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    flex: 1;
+  }
+  .verdict-pill {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: white;
+  }
+  .verdict-strong { background: var(--verdict-strong); }
+  .verdict-adequate { background: var(--verdict-adequate); }
+  .verdict-thin { background: var(--verdict-thin); }
+  .verdict-broken { background: var(--verdict-broken); }
+
+  .dim-body { padding: 4px 20px 18px; }
+  .dim-judgment { color: var(--text); font-size: 14.5px; }
+  .dim-judgment p { margin: 0 0 10px; }
+
+  .findings-list { padding: 0 20px 4px; }
+  article.finding {
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+  }
+  article.finding:first-child { border-top: none; }
+  article.finding header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .badge {
+    font-size: 10.5px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+  }
+  .badge-sev-low { background: rgba(100, 116, 139, 0.12); color: var(--sev-low); }
+  .badge-sev-medium { background: rgba(202, 138, 4, 0.14); color: var(--sev-medium); }
+  .badge-sev-high { background: rgba(234, 88, 12, 0.14); color: var(--sev-high); }
+  .badge-sev-critical { background: rgba(220, 38, 38, 0.14); color: var(--sev-critical); }
+  .finding-title { margin: 0; font-size: 15px; font-weight: 500; flex: 1; min-width: 200px; }
+  .finding-location { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; color: var(--muted); }
+  .finding-note, .finding-fix { margin-top: 6px; font-size: 14px; }
+  .finding-fix strong { color: var(--muted); font-weight: 500; }
+
+  .reviewer-source {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  .mechanical {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 24px;
+    font-size: 14px;
+  }
+  .mechanical h3 { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .mechanical ul { margin: 0; padding-left: 20px; }
+  .mechanical li { margin-bottom: 4px; color: var(--text); }
+
+  footer.report-footer {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  footer .meta { display: flex; gap: 24px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+  <div class="container">
+
+    <header class="report-header">
+      <div class="title">
+        <h1>Text &amp; Markdown preview — Validation Report</h1>
+        <div class="subtitle">_bmad-output/planning-artifacts/prds/prd-file-browser-2026-10-22/prd.md</div>
+      </div>
+      <div class="grade grade-excellent">Excellent</div>
+    </header>
+
+    <div class="synthesis">
+      <p>A tight, decision-ready PRD for a medium-rigor course epic. Every FR has a concrete consequence a test can run, the four EARS requirements are present and marked (FR-9, FR-1, FR-2, FR-3), the safety rules have runnable tests, and the owner's trade-offs (raw HTML shown as text, <code>.ts</code> always text, only web links open) are stated with their cost.</p>
+      <p>What remains is at the edges: there is no speed bound for files near the 1 MB limit, the "text file" definition is open-ended ("a common text format") and contradicted by §7.2's dotfile line, and two link behaviours that matter for safety and GitHub-likeness (bare/angle-bracket links, and what the opened tab can do back to the app) are unspecified. None blocks story writing. All are one-line fixes. Only the rubric walker ran.</p>
+    </div>
+
+    <div class="dimension-summary">
+      <div class="dim-card"><div class="dim-name">Decision-readiness</div><div class="dim-verdict" style="color: var(--verdict-strong)">strong</div></div>
+      <div class="dim-card"><div class="dim-name">Substance over theater</div><div class="dim-verdict" style="color: var(--verdict-strong)">strong</div></div>
+      <div class="dim-card"><div class="dim-name">Strategic coherence</div><div class="dim-verdict" style="color: var(--verdict-adequate)">adequate</div></div>
+      <div class="dim-card"><div class="dim-name">Done-ness clarity</div><div class="dim-verdict" style="color: var(--verdict-adequate)">adequate</div></div>
+      <div class="dim-card"><div class="dim-name">Scope honesty</div><div class="dim-verdict" style="color: var(--verdict-adequate)">adequate</div></div>
+      <div class="dim-card"><div class="dim-name">Downstream usability</div><div class="dim-verdict" style="color: var(--verdict-adequate)">adequate</div></div>
+      <div class="dim-card"><div class="dim-name">Shape fit</div><div class="dim-verdict" style="color: var(--verdict-strong)">strong</div></div>
+    </div>
+
+    <section class="dimension">
+      <details>
+        <summary><h2>Decision-readiness</h2><span class="verdict-pill verdict-strong">strong</span></summary>
+        <div class="dim-body"><div class="dim-judgment">
+          <p>Decisions are stated as decisions, not as "considerations": Markdown is <code>.md</code>/<code>.markdown</code> only (§3), <code>.ts</code> is always text (FR-7) with the garbled-video cost accepted in §9, raw HTML is shown as text with its cost named (FR-11), checkboxes can't be clicked (FR-10), non-web links do nothing (FR-15). §7.2 lists what was deferred and §10 honestly says nothing is blocking. The memlog confirms the owner made each of these calls.</p>
+          <p>The one choice whose user-facing cost isn't named is FR-15. A relative link like <code>[setup](docs/setup.md)</code> still looks like a link, and clicking it gives no feedback. That's a deliberate deferral (§7.2), but the reader isn't told the user will see a link that doesn't work.</p>
+        </div></div>
+        <div class="findings-list">
+          <article class="finding">
+            <header><span class="badge badge-sev-low">low</span><h3 class="finding-title">Cost of dead-looking links is unstated</h3><span class="finding-location">§4.2 FR-15</span></header>
+            <div class="finding-note">The PRD says clicking "changes nothing" but not whether the link still looks clickable, which is what the UX pass will need to decide.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Add one line to FR-15: either "such links are shown as plain text, not as links" or "Accepted cost: these links look clickable but do nothing until the deferred link story."</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary><h2>Substance over theater</h2><span class="verdict-pill verdict-strong">strong</span></summary>
+        <div class="dim-body"><div class="dim-judgment">
+          <p>One protagonist, Noa, and she drives real decisions: README first, <code>package.json</code> as numbered text, the 5 MB edge case. The Vision is specific to this app ("It has never shown what a file says"). Each NFR is product-specific and NFR-1 to NFR-4 come with a test someone can run in a browser. The counter-metrics (SM-C1, SM-C2) do real work by stopping the "reads like GitHub" goal from pulling in pixel-matching or extra syntax. Nothing reads as furniture.</p>
+        </div></div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary><h2>Strategic coherence</h2><span class="verdict-pill verdict-adequate">adequate</span></summary>
+        <div class="dim-body"><div class="dim-judgment">
+          <p>The thesis is clear: read what a file says without leaving the app, GitHub-style for Markdown, without breaking the app's three promises (§1). Features follow it: plain text and rendered views first, safety rules cross-cutting, editor/code-viewer/browser features explicitly out (§6).</p>
+          <p>The metrics are weaker than the features. SM-2 ("Every requirement passes its test") is a completion gate, not a measure of whether the thesis held. SM-1 is the real thesis metric, but "A real README" is not pinned, so two testers could pick different files and get different results. For a course exercise this is acceptable, hence adequate rather than thin.</p>
+        </div></div>
+        <div class="findings-list">
+          <article class="finding">
+            <header><span class="badge badge-sev-low">low</span><h3 class="finding-title">SM-1 test file is not pinned</h3><span class="finding-location">§8 SM-1</span></header>
+            <div class="finding-note">"A real README with headings, lists, a table, a code block and a task list" leaves the choice to the tester.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Name one public README (or a test file kept with the exercise notes) as the SM-1 reference.</div>
+          </article>
+          <article class="finding">
+            <header><span class="badge badge-sev-low">low</span><h3 class="finding-title">SM-2 is a completion gate, not a success metric</h3><span class="finding-location">§8 SM-2</span></header>
+            <div class="finding-note">It measures that the work is done, not that reading files in the app is useful.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Keep it, but label it "Done gate" rather than a primary success metric, or move it to §7.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary><h2>Done-ness clarity</h2><span class="verdict-pill verdict-adequate">adequate</span></summary>
+        <div class="dim-body"><div class="dim-judgment">
+          <p>This is the PRD's strongest dimension in absolute terms. Every FR has testable consequences with exact inputs and outputs: byte-exact boundaries in FR-3 (1,048,576 shown, 1,048,577 refused), path resolution examples in FR-12, concrete links in FR-14/FR-15, and a named hostile file in SM-3. The EARS requirements match <code>notes/l4-ex1-ears.md</code> in meaning and in their tests.</p>
+          <p>The gaps are at the boundaries an engineer will hit first. There is no speed or responsiveness bound anywhere, even though a 1 MB file can hold tens of thousands of lines, each needing a line number (FR-1). The Glossary's "Text file" relies on "a common text format (such as JSON or XML)", which is open-ended. Is an SVG (an XML format, but an image) a text file or an image? Today the app treats it as an image, but the PRD doesn't say so. Two link forms are unspecified: bare <code>https://…</code> addresses (GitHub turns them into links) and <code>&lt;https://example.com&gt;</code> (which looks like an HTML tag that FR-11 would show as text). FR-14 says a web link opens in a new tab, but not that the opened page is cut off from the app's tab. That is the one safety property NFR-2 doesn't cover.</p>
+        </div></div>
+        <div class="findings-list">
+          <article class="finding">
+            <header><span class="badge badge-sev-medium">medium</span><h3 class="finding-title">No speed bound for files near the size limit</h3><span class="finding-location">§3 Size limit, FR-1, FR-2</span></header>
+            <div class="finding-note">"Loading…" may show forever without breaking any FR, and a 1 MB file of short lines could freeze the tab.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Add a consequence to FR-1 and FR-9: "A 1 MB text file of 20,000 lines appears within 2 seconds on a typical laptop, and the tree stays usable while it loads". The owner picks the numbers.</div>
+          </article>
+          <article class="finding">
+            <header><span class="badge badge-sev-medium">medium</span><h3 class="finding-title">"Common text format" is open-ended; SVG is ambiguous</h3><span class="finding-location">§3 Text file, FR-6</span></header>
+            <div class="finding-note">An engineer can't tell which reported types count, and an <code>.svg</code> is both XML and an image.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Define it as "any file that shows a line count in the detail pane today, plus <code>.ts</code> files", and add an FR-6 consequence: "An <code>.svg</code> file keeps today's image preview."</div>
+          </article>
+          <article class="finding">
+            <header><span class="badge badge-sev-medium">medium</span><h3 class="finding-title">Bare and angle-bracket web links are unspecified</h3><span class="finding-location">§4.2 FR-11, FR-14</span></header>
+            <div class="finding-note">GitHub links <code>https://example.com</code> written as plain text and <code>&lt;https://example.com&gt;</code>. The PRD doesn't say whether these become links or, under FR-11, show as literal tags.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Add one consequence to FR-14: "<code>&lt;https://example.com&gt;</code> is a web link; a bare <code>https://example.com</code> is [shown as a link | shown as plain text]."</div>
+          </article>
+          <article class="finding">
+            <header><span class="badge badge-sev-medium">medium</span><h3 class="finding-title">The opened tab's reach back to the app is unstated</h3><span class="finding-location">§4.2 FR-14, §5 NFR-2</span></header>
+            <div class="finding-note">A page opened from a link can, unless prevented, redirect the original tab. That breaks "her folder stays open" (UJ-1) and the safety promise.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Add an FR-14 consequence: "The opened page cannot change or read the app's tab, and is not told which page linked to it."</div>
+          </article>
+          <article class="finding">
+            <header><span class="badge badge-sev-low">low</span><h3 class="finding-title">Line numbering vs. the detail pane's line count</h3><span class="finding-location">§4.1 FR-1</span></header>
+            <div class="finding-note">It is unstated whether a final newline produces an extra empty numbered line. Today's line count says it does not.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Add a consequence: "The last line number equals the line count shown in the detail pane."</div>
+          </article>
+          <article class="finding">
+            <header><span class="badge badge-sev-low">low</span><h3 class="finding-title">"Loading…" for files that need no reading</h3><span class="finding-location">§4.1 FR-2, FR-3, FR-4</span></header>
+            <div class="finding-note">It is unclear whether an over-limit or 0-byte file flashes "Loading…" first.</div>
+            <div class="finding-fix"><strong>Fix:</strong> State that files over the size limit and empty files show their message directly.</div>
+          </article>
+          <article class="finding">
+            <header><span class="badge badge-sev-low">low</span><h3 class="finding-title">Case of Markdown extensions</h3><span class="finding-location">§3 Markdown file</span></header>
+            <div class="finding-note"><code>README.MD</code> is not covered.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Add "upper or lower case" to the definition.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary><h2>Scope honesty</h2><span class="verdict-pill verdict-adequate">adequate</span></summary>
+        <div class="dim-body"><div class="dim-judgment">
+          <p>Non-Goals (§6) do real work: editor, code viewer, GitHub clone and web browser are each ruled out with concrete examples (footnotes, alerts, maths). §7.2 names deferred items and says where they'd go. Open-items density is near zero, which fits a PRD marked final, and the memlog shows each former assumption was confirmed.</p>
+          <p>Two things fall short. First, §7.2's last bullet says "files whose name starts with a dot are not text files in this epic". That contradicts the Glossary rule (the browser's reported type, then the extension) for names such as <code>.eslintrc.json</code> or <code>.env.example.txt</code>, which have a real extension. It also reads as a product rule when it is really a known limitation (the memlog records it as a bug reported outside the task). Second, accessibility is not mentioned at all, not even as a non-goal, even though the PRD adds read-only checkboxes and links.</p>
+        </div></div>
+        <div class="findings-list">
+          <article class="finding">
+            <header><span class="badge badge-sev-medium">medium</span><h3 class="finding-title">Dotfile line contradicts the Glossary</h3><span class="finding-location">§7.2 vs §3 Text file</span></header>
+            <div class="finding-note">An engineer can't tell whether to add a new exclusion or leave today's behaviour.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Reword to "Files such as <code>.gitignore</code>, whose name is only a dot and a word, are not detected as text files in this epic (known limitation, reported separately)", and add the same sentence to the Glossary entry.</div>
+          </article>
+          <article class="finding">
+            <header><span class="badge badge-sev-low">low</span><h3 class="finding-title">Accessibility is not mentioned</h3><span class="finding-location">§4, §6</span></header>
+            <div class="finding-note">Read-only checkboxes and dead links (FR-10, FR-15) are exactly where a screen-reader or keyboard user gets confused.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Add one line: either a requirement ("checkboxes are announced as read-only; web links are reachable by keyboard") or an explicit non-goal.</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary><h2>Downstream usability</h2><span class="verdict-pill verdict-adequate">adequate</span></summary>
+        <div class="dim-body"><div class="dim-judgment">
+          <p>The Glossary is present and used consistently: "size limit", "local image", "placeholder", "web link" are each defined once and reused verbatim in FRs. IDs are contiguous and every cross-reference resolves. The addendum keeps engineer detail out of the PRD and points to the brief's research.</p>
+          <p>One term collides. "Preview" is defined as the new text area, yet FR-6 and the Glossary also say "today's image preview". "Tree" is used throughout but not defined. A UX or story writer pulling FR-6 alone could read "no text preview" and "image preview" as two areas or one.</p>
+        </div></div>
+        <div class="findings-list">
+          <article class="finding">
+            <header><span class="badge badge-sev-low">low</span><h3 class="finding-title">"Image preview" and "tree" are undefined, and "preview" is overloaded</h3><span class="finding-location">§3, FR-6</span></header>
+            <div class="finding-note">The two "preview" senses can be read as one area or two.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Add Glossary entries for "Tree" and "Image preview" ("today's image, dimensions and EXIF area; unchanged by this epic").</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary><h2>Shape fit</h2><span class="verdict-pill verdict-strong">strong</span></summary>
+        <div class="dim-body"><div class="dim-judgment">
+          <p>A single-user, browser-only viewer with meaningful UI. One user journey with a named protagonist serves the UX pass without over-formalizing. Capability-spec FRs carry the weight, which suits a course epic at medium rigor. The course readability rule mostly holds: no source file names, libraries or component names appear, and the example user files (<code>README.md</code>, <code>package.json</code>, <code>docs/guide.md</code>) are the allowed kind. A few phrases still lean on engineer vocabulary.</p>
+        </div></div>
+        <div class="findings-list">
+          <article class="finding">
+            <header><span class="badge badge-sev-low">low</span><h3 class="finding-title">A few engineer terms remain</h3><span class="finding-location">§5 NFR-2, §8 SM-2, §5 NFR-5</span></header>
+            <div class="finding-note">Examples: "code hidden in tag attributes", "the project's check command passes", "third-party package".</div>
+            <div class="finding-fix"><strong>Fix:</strong> Change them to "code hidden inside a formatting tag", "the project's automatic checks pass" and "outside code library".</div>
+          </article>
+        </div>
+      </details>
+    </section>
+
+    <div class="mechanical">
+      <h3>Mechanical notes</h3>
+      <ul>
+        <li>ID continuity clean: FR-1–FR-15, NFR-1–NFR-5, SM-1–SM-3, SM-C1–SM-C2, UJ-1. No gaps or duplicates; §4.2, §5, §7.2 and FR-12–FR-15 cross-references resolve.</li>
+        <li>EARS markers 1–4 sit on FR-9, FR-1, FR-2, FR-3 and match <code>notes/l4-ex1-ears.md</code> (1 MB = 1,048,576 bytes; "preview pane" in the note became "preview", consistent with the Glossary).</li>
+        <li>Assumptions Index roundtrip clean: no inline [ASSUMPTION] tags remain; §11 says "None open", consistent with the memlog.</li>
+        <li>NFR-5 is left out of SM-2's "Validates" list on purpose (it's a process rule, not testable in the app). This is consistent, but worth a word in NFR-5 so it doesn't look like an omission.</li>
+        <li>The memlog refers to "§9 Open Questions, §10 Assumptions Index", but the PRD numbers them §10 and §11 since Known Risks was restored. Only the memlog is affected.</li>
+        <li>The addendum's pointer <code>briefs/brief-file-browser-2026-10-22/addendum.md</code> resolves.</li>
+      </ul>
+    </div>
+
+    <footer class="report-footer">
+      <div class="meta">
+        <span>Rubric: .claude/skills/bmad-prd/assets/prd-validation-checklist.md</span>
+        <span>Generated: 2026-10-22T09:54:24Z</span>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
