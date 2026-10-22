@@ -12,6 +12,7 @@ describe('previewPlan', () => {
     expect(previewPlan(sized('notes.txt', 10, 'text/plain'))).toBe('plain');
     expect(previewPlan(sized('package.json', 10, 'application/json'))).toBe('plain');
     expect(previewPlan(sized('README.md', 10))).toBe('markdown');
+    expect(previewPlan(sized('index.ts', 10, 'video/mp2t'))).toBe('plain');
   });
 
   it('no preview for files that are not text', () => {

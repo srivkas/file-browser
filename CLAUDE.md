@@ -34,7 +34,7 @@ A browser-only, read-only file explorer used as the base project for a course. R
 
 ## Known pitfalls
 
-- A `.ts` file shows no Lines row because Chrome reports it as `video/mp2t` — not a `text.ts` bug. Whether a code extension should override that MIME type is an open decision; ask before changing it.
+- Chrome reports `.ts` files as `video/mp2t`, which used to hide their Lines row. `isTextFile` now treats every `.ts` file (only `.ts`) as text before checking the MIME type (story 1.2 in `_bmad-output/planning-artifacts/epics.md`), so a real video named `.ts` shows as garbled text — accepted. The Type row still shows `video/mp2t`.
 - Picking an empty folder in the Firefox/Safari fallback gives no feedback — an open decision; ask before adding a message.
 
 <!-- /bmad:context -->

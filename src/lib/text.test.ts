@@ -41,6 +41,14 @@ describe('isTextFile', () => {
     expect(isTextFile(file('archive.zip', 'application/zip'))).toBe(false);
   });
 
+  it('.ts is always text, whatever the browser reports', () => {
+    expect(isTextFile(file('index.ts', 'video/mp2t'))).toBe(true);
+    expect(isTextFile(file('INDEX.TS', 'video/mp2t'))).toBe(true);
+    // Only .ts is overridden; other extensions keep the browser's video type.
+    expect(isTextFile(file('clip.mts', 'video/mp2t'))).toBe(false);
+    expect(canCountLines(file('index.ts', 'video/mp2t'))).toBe(true);
+  });
+
   it('falls back to the extension when the MIME type is blank', () => {
     expect(isTextFile(file('App.tsx'))).toBe(true);
     expect(isTextFile(file('index.ts'))).toBe(true);

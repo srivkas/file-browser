@@ -19,7 +19,7 @@ const TEXT_MIME_TYPES = new Set([
   'application/x-yaml',
 ]);
 
-/** Used only when the browser leaves the MIME type blank. */
+/** Used only when the browser leaves the MIME type blank (`.ts` is handled first, in isTextFile). */
 const TEXT_EXTENSIONS = new Set([
   'txt', 'text', 'log', 'md', 'markdown', 'rst', 'adoc',
   'json', 'jsonc', 'json5', 'csv', 'tsv', 'xml', 'yaml', 'yml', 'toml', 'ini', 'cfg', 'conf', 'env',
@@ -31,8 +31,10 @@ const TEXT_EXTENSIONS = new Set([
   'gitignore', 'gitattributes', 'editorconfig', 'lock',
 ]);
 
-/** True for files worth counting lines in: by MIME type, or by extension when the type is blank. */
+/** True for text files: `.ts` always; otherwise by MIME type, or by extension when the type is blank. */
 export function isTextFile(file: File): boolean {
+  // Chrome reports .ts as video/mp2t (MPEG transport stream); here it is always TypeScript.
+  if (extension(file.name) === 'ts') return true;
   const type = file.type.toLowerCase();
   if (type) {
     return (

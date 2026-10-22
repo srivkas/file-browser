@@ -12,3 +12,6 @@
 - source_spec: `_bmad-output/implementation-artifacts/spec-1-1-read-a-plain-text-file-with-line-numbers.md`
   summary: Pre-existing bug — `ModifiedDate` and `LineCount` in `DetailPane.tsx` are sibling elements with the same `key={node.path}`; React logs a duplicate-key error for every text file.
   evidence: Present at the baseline commit; reported, not fixed (outside the story).
+- source_spec: `_bmad-output/implementation-artifacts/spec-1-2-typescript-files-are-text.md`
+  summary: The Type row still shows `video/mp2t` for TypeScript files that now show a Lines row and a text preview.
+  evidence: `fileType()` in `src/lib/format.ts` prints the browser MIME type; the story only changed text detection. Needs an owner decision on what the Type row should say.
