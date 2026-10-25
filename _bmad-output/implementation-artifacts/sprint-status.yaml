@@ -29,16 +29,70 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-22-2026 13:31
-last_updated: 10-22-2026 14:28
+last_updated: 10-22-2026 14:41
 project: file-browser
 project_key: NOKEY
 tracking_system: file-system
 story_location: _bmad-output/implementation-artifacts
 development_status:
-  epic-1: in-progress
+  epic-1: done
   1-1-read-a-plain-text-file-with-line-numbers: done
   1-2-typescript-files-are-text: done
   1-3-read-markdown-formatted-safely: done
   1-4-open-web-links-from-a-readme: done
-  1-5-show-a-readme-s-own-images: review
-  epic-1-retrospective: optional
+  1-5-show-a-readme-s-own-images: done
+  epic-1-retrospective: done
+action_items:
+  - id: "epic-1-retro-item-1-show-empty-file-or-the-plain-view-when-a"
+    epic: 1
+    action: "Show Empty file (or the plain view) when a non-empty Markdown file parses
+      to no blocks"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-22.md"
+  - id: "epic-1-retro-item-2-make-the-parse-fallback-and-entity-decod"
+    epic: 1
+    action: "Make the parse-fallback and entity-decoding tests deterministic (mock
+      the lexer; add &amp;lt; single-decode cases)"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-22.md"
+  - id: "epic-1-retro-item-3-harden-the-eslint-safety-rules-aliased-m"
+    epic: 1
+    action: "Harden the ESLint safety rules (aliased marked, more HTML sinks) and
+      add a lint test that proves each rule fires"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-22.md"
+  - id: "epic-1-retro-item-4-reconcile-spine-ad-3-ad-5-prd-fr-14-and"
+    epic: 1
+    action: "Reconcile spine AD-3/AD-5, PRD FR-14 and DESIGN.md tokens to the as-built
+      code"
+    owner: "product owner"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-22.md"
+  - id: "epic-1-retro-item-5-implement-every-story-through-a-fresh-su"
+    epic: 1
+    action: "Implement every story through a fresh subagent from the approved spec"
+    owner: "orchestrator"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-22.md"
+  - id: "epic-1-retro-item-6-decide-on-a-dom-test-environment-depende"
+    epic: 1
+    action: "Decide on a DOM test environment dependency for component tests"
+    owner: "product owner"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-22.md"
+  - id: "epic-1-retro-item-7-list-every-new-design-token-in-the-story"
+    epic: 1
+    action: "List every new design token in the story spec"
+    owner: "orchestrator"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-22.md"
+  - id: "epic-1-retro-item-8-wrap-the-markdown-preview-in-an-error-bo"
+    epic: 1
+    action: "Wrap the Markdown preview in an error boundary that falls back to the
+      plain view"
+    owner: "dev"
+    status: open
+    ref: "_bmad-output/implementation-artifacts/epic-1-retro-2026-10-22.md"
