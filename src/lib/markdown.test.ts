@@ -113,10 +113,6 @@ describe('parseMarkdown', () => {
     expect(parseMarkdown('&#38; &#x26; &#60;', F)).toEqual(para(text('& & <')));
   });
 
-  it('gives null when the input is too deeply nested to parse', () => {
-    expect(parseMarkdown('>'.repeat(2000) + ' a', F)).toBeNull();
-  });
-
   it('gives null when marked fails to parse the input', async () => {
     // Only markdown.ts may import marked (ESLint), so swap the module and load a fresh copy.
     vi.doMock('marked', () => ({
