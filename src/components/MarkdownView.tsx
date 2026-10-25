@@ -8,10 +8,11 @@ import { PlainTextView } from './PlainTextView';
 // Web links open in a new tab with no opener and no referrer; every other link
 // is inert text. Images inside the open folder (`root`) are shown from their
 // files; every other image is a placeholder.
-// Text the parser cannot handle falls back to the plain view.
+// Text the parser cannot handle, or that renders to nothing (only whitespace or
+// link definitions), falls back to the plain view.
 export function MarkdownView({ text, root, filePath }: { text: string; root: DirNode; filePath: string }) {
   const blocks = useMemo(() => parseMarkdown(text, filePath), [text, filePath]);
-  if (blocks === null) return <PlainTextView text={text} />;
+  if (blocks === null || blocks.length === 0) return <PlainTextView text={text} />;
   return (
     <div className="markdown">
       <Blocks blocks={blocks} root={root} />

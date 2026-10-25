@@ -115,4 +115,12 @@ describe('MarkdownView', () => {
     expect(html).toContain('class="plain-text"');
     expect(html).not.toContain('class="markdown"');
   });
+
+  it('falls back to the plain view when the text renders to nothing', () => {
+    for (const md of ['   \n\n  \n', '[ref]: https://example.com\n[other]: docs/a.md']) {
+      const html = render(md);
+      expect(html).toContain('class="plain-text"');
+      expect(html).not.toContain('class="markdown"');
+    }
+  });
 });
