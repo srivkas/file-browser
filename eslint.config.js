@@ -15,12 +15,27 @@ const SAFETY_SYNTAX = [
   { selector: "Property[key.value='dangerouslySetInnerHTML']", message: NO_HTML },
   { selector: 'AssignmentExpression[left.property.name=/^(inner|outer)HTML$/]', message: NO_HTML },
   { selector: 'AssignmentExpression[left.property.value=/^(inner|outer)HTML$/]', message: NO_HTML },
+  // Object.assign(el, { innerHTML }) and friends.
+  { selector: 'Property[key.name=/^(inner|outer)HTML$/]', message: NO_HTML },
+  { selector: 'Property[key.value=/^(inner|outer)HTML$/]', message: NO_HTML },
+  { selector: 'JSXAttribute[name.name=/^srcdoc$/i]', message: NO_HTML },
+  { selector: "CallExpression[callee.property.name='setAttribute'][arguments.0.value=/^srcdoc$/i]", message: NO_HTML },
   { selector: "CallExpression[callee.property.name='insertAdjacentHTML']", message: NO_HTML },
   { selector: "CallExpression[callee.object.name='document'][callee.property.name=/^write(ln)?$/]", message: NO_HTML },
   { selector: "CallExpression[callee.property.name='createContextualFragment']", message: NO_HTML },
   { selector: 'ImportExpression[source.value=/^marked(\\W|$)/]', message: 'Only src/lib/markdown.ts may import marked, statically.' },
+  { selector: "ImportExpression[source.type!='Literal']", message: 'Name the module of a dynamic import as a plain string.' },
 ];
 const LEXER_ONLY = 'Use marked.lexer only; never produce HTML.';
+// marked must keep its own name in markdown.ts, or the lexer-only rules can't see it.
+const OWN_NAME = 'Import marked as { marked } and use it by that name.';
+const MARKED_NAME_SYNTAX = [
+  { selector: "ImportDeclaration[source.value='marked'] > ImportSpecifier[imported.name='marked'][local.name!='marked']", message: OWN_NAME },
+  { selector: "ImportDeclaration[source.value='marked'] > ImportDefaultSpecifier", message: OWN_NAME },
+  { selector: "ImportDeclaration[source.value='marked'] > ImportNamespaceSpecifier", message: OWN_NAME },
+  { selector: "VariableDeclarator[init.name='marked']", message: OWN_NAME },
+  { selector: "AssignmentExpression[right.name='marked']", message: OWN_NAME },
+];
 
 export default tseslint.config(
   { ignores: ['dist'] },
@@ -72,8 +87,17 @@ export default tseslint.config(
         { object: 'marked', property: 'parseInline', message: LEXER_ONLY },
         { object: 'marked', property: 'parser', message: LEXER_ONLY },
         { object: 'marked', property: 'use', message: LEXER_ONLY },
+        { object: 'marked', property: 'marked', message: LEXER_ONLY },
+        { object: 'marked', property: 'Parser', message: LEXER_ONLY },
+        { object: 'marked', property: 'Marked', message: LEXER_ONLY },
+        { object: 'marked', property: 'Renderer', message: LEXER_ONLY },
       ],
-      'no-restricted-syntax': ['error', ...SAFETY_SYNTAX, { selector: "CallExpression[callee.name='marked']", message: LEXER_ONLY }],
+      'no-restricted-syntax': [
+        'error',
+        ...SAFETY_SYNTAX,
+        ...MARKED_NAME_SYNTAX,
+        { selector: "CallExpression[callee.name='marked']", message: LEXER_ONLY },
+      ],
     },
   },
 );
