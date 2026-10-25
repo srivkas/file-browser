@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { decodeEntities, parseMarkdown, type MdBlock } from './markdown';
 import { PREVIEW_MAX_BYTES, previewPlan } from './preview';
 
@@ -115,6 +115,25 @@ describe('parseMarkdown', () => {
 
   it('gives null when the input is too deeply nested to parse', () => {
     expect(parseMarkdown('>'.repeat(2000) + ' a', F)).toBeNull();
+  });
+
+  it('gives null when marked fails to parse the input', async () => {
+    // Only markdown.ts may import marked (ESLint), so swap the module and load a fresh copy.
+    vi.doMock('marked', () => ({
+      marked: {
+        lexer: () => {
+          throw new Error('boom');
+        },
+      },
+    }));
+    vi.resetModules();
+    try {
+      const fresh = await import('./markdown');
+      expect(fresh.parseMarkdown('# a', F)).toBeNull();
+    } finally {
+      vi.doUnmock('marked');
+      vi.resetModules();
+    }
   });
 
   it('keeps backslash escapes literal', () => {
