@@ -2,6 +2,7 @@ import { useEffect, useId, useState } from 'react';
 import { formatPreviewMessage, PREVIEW_TITLE } from '../lib/format';
 import { previewPlan } from '../lib/preview';
 import type { DirNode } from '../lib/tree';
+import { MarkdownBoundary } from './MarkdownBoundary';
 import { MarkdownView } from './MarkdownView';
 import { PlainTextView } from './PlainTextView';
 
@@ -35,7 +36,12 @@ export function TextPreview({ file, root, filePath }: { file: File; root: DirNod
   let body;
   if (plan === 'too-large' || plan === 'empty') body = <Message text={formatPreviewMessage(plan)} />;
   else if (result === null) body = <Message text={formatPreviewMessage('loading')} />;
-  else if (plan === 'markdown') body = <MarkdownView text={result.text} root={root} filePath={filePath} />;
+  else if (plan === 'markdown')
+    body = (
+      <MarkdownBoundary fallback={<PlainTextView text={result.text} />}>
+        <MarkdownView text={result.text} root={root} filePath={filePath} />
+      </MarkdownBoundary>
+    );
   else body = <PlainTextView text={result.text} />;
 
   return (

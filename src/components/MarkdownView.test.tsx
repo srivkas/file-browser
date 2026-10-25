@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { buildTree } from '../lib/tree';
 import { MarkdownView } from './MarkdownView';
@@ -110,10 +110,19 @@ describe('MarkdownView', () => {
     expect(tagsOf(html).filter((tag) => /\bsrc=/i.test(tag))).toEqual([]);
   });
 
-  it('falls back to the plain view when the text cannot be parsed', () => {
-    const html = render('>'.repeat(2000) + ' a');
-    expect(html).toContain('class="plain-text"');
-    expect(html).not.toContain('class="markdown"');
+  it('falls back to the plain view when the text cannot be parsed', async () => {
+    // Make the parser fail on purpose instead of hoping odd input breaks it.
+    vi.doMock('../lib/markdown', () => ({ parseMarkdown: () => null }));
+    vi.resetModules();
+    try {
+      const { MarkdownView: Fresh } = await import('./MarkdownView');
+      const html = renderToStaticMarkup(<Fresh text="# a" root={root} filePath="proj/README.md" />);
+      expect(html).toContain('class="plain-text"');
+      expect(html).not.toContain('class="markdown"');
+    } finally {
+      vi.doUnmock('../lib/markdown');
+      vi.resetModules();
+    }
   });
 
   it('falls back to the plain view when the text renders to nothing', () => {
