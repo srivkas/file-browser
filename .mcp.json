@@ -7,6 +7,16 @@
     "codebase-memory-mcp": {
       "command": "codebase-memory-mcp",
       "args": []
+    },
+    "file-browser": {
+      "command": "node",
+      "args": [
+        "--experimental-strip-types",
+        "mcp/file-browser-server.ts"
+      ],
+      "env": {
+        "FB_PROJECT_ROOT": "${FB_PROJECT_ROOT:-.}"
+      }
     }
   }
 }
