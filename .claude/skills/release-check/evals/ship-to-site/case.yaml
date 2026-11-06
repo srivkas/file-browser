@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: ship-to-site
+expected_outcome: |
+  Recognises that shipping means fast-forwarding main, which deploys to GitHub Pages; runs the release checks including a clean CI-like install, check and build; says the release is only done once the deploy run succeeds; stops for the owner's approval without pushing.
