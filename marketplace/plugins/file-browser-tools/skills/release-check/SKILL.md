@@ -14,7 +14,7 @@ The owner reviews every change: never commit, push or merge without their OK (`C
 From the repo root, on the feature branch:
 
 ```bash
-.claude/skills/release-check/scripts/preflight.sh
+"${CLAUDE_SKILL_DIR}/scripts/preflight.sh"
 ```
 
 It checks: on a feature branch, clean tree, in sync with `origin/<branch>`, `main` fast-forwards to it, no Codex copies or local secrets tracked, and it prints any `package.json` changes against `main`. Each line is `PASS`, `FAIL` or `NOTE`; it exits non-zero on any `FAIL`.
@@ -24,7 +24,7 @@ A `FAIL` stops the release. Report it with the fix from [references/checks.md](r
 ## 2. CI mirror — the fragile step
 
 ```bash
-.claude/skills/release-check/scripts/ci-mirror.sh
+"${CLAUDE_SKILL_DIR}/scripts/ci-mirror.sh"
 ```
 
 It runs exactly what CI runs — `npm ci`, `npm run check`, `npm run build` — on the committed `HEAD` in a throwaway worktree, then removes it. Why not just `npm run check` here: your `node_modules` has grown over time and may hold packages the lockfile doesn't, so a local check can pass while CI's clean install fails. Requirements are in [scripts/README.md](scripts/README.md).

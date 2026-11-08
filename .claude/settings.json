@@ -1,4 +1,7 @@
 {
+  "env": {
+    "BROWSER": "Safari"
+  },
   "permissions": {
     "allow": [
       "Bash(npm run check)",
@@ -7,7 +10,15 @@
       "Bash(npm run typecheck)"
     ]
   },
-  "env": {
-    "BROWSER": "Safari"
+  "enabledPlugins": {
+    "file-browser-tools@file-browser": true
+  },
+  "extraKnownMarketplaces": {
+    "file-browser": {
+      "source": {
+        "source": "directory",
+        "path": "./marketplace"
+      }
+    }
   }
 }
