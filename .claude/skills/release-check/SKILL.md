@@ -1,6 +1,6 @@
 ---
 name: release-check
-description: Pre-merge release check for file-browser — proves a feature branch is safe to fast-forward into main, where every push deploys the live site to GitHub Pages. Runs the git checks, mirrors the CI deploy job (clean npm ci, npm run check, npm run build) in a throwaway worktree, lists new dependencies for the owner, and after the owner approves, merges and watches the deploy until it succeeds. Use it whenever the user asks "is this ready to merge?", "can we ship / release / deploy this?", "merge it to main", "push it live", or wants to put a branch on the site — even if they don't say "release check". Not for just running the check or summarising uncommitted work (that's check-status), and not for pushing a feature branch to GitHub without merging.
+description: Use when the user asks whether a feature branch is ready to merge, or wants to ship, release, deploy or put it on the live site — "is this ready to merge?", "can we ship this?", "merge it to main", "push it live" — even if they don't say "release check". Proves the branch is safe to fast-forward into main, where every push deploys to GitHub Pages: runs the git checks, mirrors the CI deploy job (clean npm ci, npm run check, npm run build) in a throwaway worktree, lists new dependencies for the owner, and after the owner approves, merges and watches the deploy until it succeeds. Not for just running the check or summarising uncommitted work (that's check-status), and not for pushing a feature branch to GitHub without merging.
 ---
 
 # Release check
