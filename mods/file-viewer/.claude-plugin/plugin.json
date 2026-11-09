@@ -1,0 +1,6 @@
+{
+  "name": "file-viewer",
+  "version": "0.1.0",
+  "description": "A read-only pane beside the chat showing this project's file tree.",
+  "types": "./types/index.d.ts"
+}

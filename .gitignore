@@ -13,3 +13,6 @@ _bmad/config.user.toml
 AGENTS.md
 .agents/
 .codex/
+
+# Claude Code writes these types when it loads a mod
+mods/*/.claude-plugin/types/
