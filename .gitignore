@@ -16,3 +16,4 @@ AGENTS.md
 
 # Claude Code writes these types when it loads a mod
 mods/*/.claude-plugin/types/
+mods/*/tsconfig.json
