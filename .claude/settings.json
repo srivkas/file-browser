@@ -11,13 +11,14 @@
     ]
   },
   "enabledPlugins": {
-    "file-browser-tools@file-browser": true
+    "file-browser-tools@file-browser": true,
+    "file-viewer@file-browser": true
   },
   "extraKnownMarketplaces": {
     "file-browser": {
       "source": {
         "source": "directory",
-        "path": "./marketplace"
+        "path": "."
       }
     }
   }

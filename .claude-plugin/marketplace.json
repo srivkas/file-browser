@@ -1,0 +1,16 @@
+{
+  "name": "file-browser",
+  "owner": { "name": "file-browser course project" },
+  "plugins": [
+    {
+      "name": "file-browser-tools",
+      "source": "./marketplace/plugins/file-browser-tools",
+      "description": "Release check, rule audit and a confirmation before pushing to main."
+    },
+    {
+      "name": "file-viewer",
+      "source": "./mods/file-viewer",
+      "description": "A read-only pane beside the chat showing this project's file tree and file previews."
+    }
+  ]
+}
