@@ -6,7 +6,7 @@ export default defineConfig({
   base: './',
   plugins: [react()],
   test: {
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', '.claude/hooks/**/*.test.ts'],
     environment: 'node',
   },
 });
