@@ -3,7 +3,7 @@ import type { DirNode, FileNode, TreeNode } from '../lib/tree';
 import { filterTree, folderPaths } from '../lib/filter';
 import { treeKeyAction, visibleRows } from '../lib/tree-nav';
 import { collapseAll, expandAll } from '../lib/tree-expand';
-import { formatTreeAction } from '../lib/format';
+import { formatTreeAction, formatTreeFilter } from '../lib/format';
 
 interface Props {
   root: DirNode;
@@ -88,8 +88,8 @@ export function FileTree({ root, selectedPath, onSelect }: Props) {
       <input
         className="tree-filter"
         type="search"
-        placeholder="Filter"
-        aria-label="Filter files"
+        placeholder={formatTreeFilter('placeholder')}
+        aria-label={formatTreeFilter('label')}
         value={state.query}
         onChange={handleFilterChange}
       />
@@ -106,7 +106,7 @@ export function FileTree({ root, selectedPath, onSelect }: Props) {
           <TreeRow node={shown} depth={0} {...rowProps} />
         </ul>
       ) : (
-        <p className="empty">No files match.</p>
+        <p className="empty">{formatTreeFilter('no-match')}</p>
       )}
     </>
   );

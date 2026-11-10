@@ -7,6 +7,7 @@ import {
   formatLineCount,
   formatPreviewMessage,
   formatTreeAction,
+  formatTreeFilter,
   formatRelativeTime,
 } from './format';
 import { formatExif } from './image';
@@ -87,5 +88,13 @@ describe('formatTreeAction', () => {
   it('labels the buttons above the tree', () => {
     expect(formatTreeAction('expand-all')).toBe('Expand all');
     expect(formatTreeAction('collapse-all')).toBe('Collapse all');
+  });
+});
+
+describe('formatTreeFilter', () => {
+  it('labels the filter box and its no-match message', () => {
+    expect(formatTreeFilter('placeholder')).toBe('Filter');
+    expect(formatTreeFilter('label')).toBe('Filter files');
+    expect(formatTreeFilter('no-match')).toBe('No files match.');
   });
 });

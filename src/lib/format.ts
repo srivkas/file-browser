@@ -74,3 +74,14 @@ const TREE_ACTIONS = {
 export function formatTreeAction(kind: keyof typeof TREE_ACTIONS): string {
   return TREE_ACTIONS[kind];
 }
+
+const TREE_FILTER = {
+  placeholder: 'Filter',
+  label: 'Filter files',
+  'no-match': 'No files match.',
+} as const;
+
+/** Text of the filter box above the file tree, and of the message when nothing matches. */
+export function formatTreeFilter(kind: keyof typeof TREE_FILTER): string {
+  return TREE_FILTER[kind];
+}
