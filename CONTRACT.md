@@ -28,6 +28,8 @@ What Claude may do on its own in this repo, what needs the owner's approval, and
 | Action | Enforcer |
 | --- | --- |
 | A forced `git push` | Hook: `.claude/hooks/guard-bash.mjs` blocks it with exit 2 |
+| A recursive delete of `/`, the home folder, the project root or anything outside the project | Hook: `.claude/hooks/guard-bash.mjs` blocks it with exit 2 |
+| Publishing a package with `npm`, `pnpm` or `yarn` | Hook: `.claude/hooks/guard-bash.mjs` blocks it with exit 2 |
 | Network calls in the app (`fetch`, `XMLHttpRequest`, `WebSocket`) | ESLint: `no-restricted-globals` |
 | `localStorage`, `sessionStorage`, `indexedDB` in the app | ESLint: `no-restricted-globals` |
 | Turning a file's content into HTML | ESLint: the safety rules, kept honest by `src/safety-lint.test.ts` |

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // PostToolUse and PostToolUseFailure hook: records each tool call that ran, and whether it worked.
 // It never blocks: any failure is ignored. Calls the guard blocked are recorded by guard-bash.mjs.
 import { readFileSync } from 'node:fs';

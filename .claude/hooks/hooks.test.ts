@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import fixtures from './fixtures/guard-bash.json';
+import samples from './samples/guard-bash.json';
 
 const GUARD = join(import.meta.dirname, 'guard-bash.mjs');
 const AUDIT = join(import.meta.dirname, 'audit-log.mjs');
@@ -44,12 +44,18 @@ const bash = (command: string) => ({
 });
 
 describe('guard-bash', () => {
-  test.each(fixtures)('$expect: $command', ({ command, expect: expected }) => {
+  test.each(samples)('$expect: $command', ({ command, expect: expected, reason }) => {
     const run = runHook(GUARD, bash(command));
 
     expect(run.status).toBe(expected === 'block' ? 2 : 0);
-    if (expected === 'block') expect(run.stderr).toMatch(/forced git push/);
+    if (expected === 'block') expect(run.stderr).toContain(reason);
     else expect(run.stderr).toBe('');
+  });
+
+  test('a recursive delete inside the project is allowed, and of the project itself is blocked', () => {
+    expect(runHook(GUARD, bash(`rm -rf ${projectDir}/dist`)).status).toBe(0);
+    expect(runHook(GUARD, bash(`rm -rf ${projectDir}`)).status).toBe(2);
+    expect(runHook(GUARD, bash(`rm -rf ${projectDir}-other/dist`)).status).toBe(2);
   });
 
   test('a block is recorded in the audit log with its reason', () => {

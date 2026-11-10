@@ -1,6 +1,6 @@
 # Level 6, exercises 3 and 7: a guard on the shell, and the audit trail
 
-Built before the Level 6 cards were read, from the summary slide. Exercise 3 still needs a recursive delete and a publish blocked, and exercise 7 needs the event name in every line and the same fields on every line.
+First built from the summary slide, before the Level 6 cards were read, then finished for exercise 3. Exercise 7 still needs the event name in every line and the same fields on every line.
 
 ## The hooks
 
@@ -8,7 +8,7 @@ All three scripts live in `.claude/hooks/` and are registered in `.claude/settin
 
 | Event | Script | What it does |
 | --- | --- | --- |
-| `PreToolUse` on `Bash` | `guard-bash.mjs` | Blocks a forced `git push` with exit 2 and a reason on stderr, and records the block |
+| `PreToolUse` on `Bash` | `guard-bash.mjs` | Blocks a forced push, a dangerous recursive delete and a publish with exit 2 and a reason on stderr, and records the block |
 | `PostToolUse` | `audit-log.mjs` | Records a call that ran and worked |
 | `PostToolUseFailure` | `audit-log.mjs` | Records a call that ran and failed |
 
@@ -16,9 +16,11 @@ All three scripts live in `.claude/hooks/` and are registered in `.claude/settin
 
 ## What the guard blocks
 
-The owner chose to block only a forced push: `--force`, `-f`, combined flags like `-uf`, and a `+` refspec. `--force-with-lease` is allowed, because it refuses to overwrite work someone else pushed.
+- **A forced push:** `--force`, `-f`, combined flags like `-uf`, and a `+` refspec. `--force-with-lease` is allowed, because it refuses to overwrite work someone else pushed. The owner first chose this one alone; the card asks for all three.
+- **A recursive delete that could reach too far:** `rm` with `-r`, `-R`, `--recursive` or a combination like `-rf`, on `/`, a path starting with `~` or holding `$HOME`, `.`, `*`, a path that normalizes to `..` or above, or an absolute path outside `$CLAUDE_PROJECT_DIR`. The owner chose this over blocking every recursive delete, because deleting `dist` or `node_modules` is common and safe.
+- **A publish:** `publish` anywhere after `npm`, `pnpm` or `yarn`, so an option with a value like `--registry <url>` can't hide it. A sample caught that case on the first run.
 
-Quotes are dropped before checking, so `bash -c "git push --force"` is caught. The cost: a commit message containing the literal text `git push --force` is blocked too.
+The script is executable, with `#!/usr/bin/env node`, and matches the usual form of a command: it stops mistakes, it is not a security boundary. Quotes are dropped before checking, so `bash -c "git push --force"` is caught. The cost: a quoted mention of a blocked command, such as a commit message, is blocked too. A test loop of this session's own was blocked that way, because its text named a dangerous delete.
 
 ## What a real session showed
 
@@ -27,5 +29,6 @@ Quotes are dropped before checking, so `bash -c "git push --force"` is caught. T
 
 ## Checked
 
-- `npm run check` runs the hook tests too: `vite.config.ts` now includes `.claude/hooks/**/*.test.ts`, so CI runs them before every deploy. 19 tests, 13 of them from `fixtures/guard-bash.json`. Each test writes to its own temporary folder.
-- In a live session on 2026-11-10: `git push --dry-run --force` was blocked and logged as `blocked`, a failing `ls` was logged as `ok: false`, and `git log` as `ok: true`.
+- `npm run check` runs the hook tests too: `vite.config.ts` includes `.claude/hooks/**/*.test.ts`, so CI runs them before every deploy. 38 samples in `samples/guard-bash.json`, each block checked for its own reason. Each test writes to its own temporary folder.
+- By hand, as the card asks, with `CLAUDE_PROJECT_DIR` set: a dangerous sample printed its reason and exited 2; a safe one stayed silent and exited 0.
+- In a live session on 2026-11-10: a forced push, a dangerous recursive delete and `npm publish --dry-run` were each refused with their reason, and `npm run check` still ran. A failing `ls` was logged as `ok: false`, and `git log` as `ok: true`.
