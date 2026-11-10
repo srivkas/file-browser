@@ -1,0 +1,16 @@
+[
+  { "file_path": ".env", "expect": "deny", "reason": "secrets" },
+  { "file_path": ".env.local", "expect": "deny", "reason": "secrets" },
+  { "file_path": "config/.env.production", "expect": "deny", "reason": "secrets" },
+  { "file_path": ".claude/settings.json", "expect": "deny", "reason": "own settings" },
+  { "file_path": ".Claude/Settings.json", "expect": "deny", "reason": "own settings" },
+  { "file_path": "./.claude/../.claude/settings.json", "expect": "deny", "reason": "own settings" },
+  { "file_path": "dist/index.html", "expect": "deny", "reason": "build output" },
+  { "file_path": "dist/assets/app.js", "expect": "deny", "reason": "build output" },
+  { "file_path": "src/lib/format.ts", "expect": "allow" },
+  { "file_path": "src/styles/app.css", "expect": "allow" },
+  { "file_path": ".claude/settings.local.json", "expect": "allow" },
+  { "file_path": ".claude/hooks/guard-files.mjs", "expect": "allow" },
+  { "file_path": "distribution/notes.md", "expect": "allow" },
+  { "file_path": "notes/environment.md", "expect": "allow" }
+]

@@ -4,9 +4,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import samples from './samples/guard-bash.json';
+import fileSamples from './samples/guard-files.json';
 
 const GUARD = join(import.meta.dirname, 'guard-bash.mjs');
 const AUDIT = join(import.meta.dirname, 'audit-log.mjs');
+const FILES = join(import.meta.dirname, 'guard-files.mjs');
 
 // Every test gets its own project folder, so no test writes a log into the repo.
 let projectDir = '';
@@ -75,6 +77,48 @@ describe('guard-bash', () => {
 
   test('unreadable input is let through', () => {
     expect(runHook(GUARD, 'not json').status).toBe(0);
+  });
+});
+
+describe('guard-files', () => {
+  const write = (file_path: string) => ({
+    session_id: 's1',
+    hook_event_name: 'PreToolUse',
+    tool_name: 'Write',
+    tool_input: { file_path: join(projectDir, file_path), content: 'x' },
+  });
+
+  test.each(fileSamples)('$expect: $file_path', ({ file_path, expect: expected, reason }) => {
+    const run = runHook(FILES, write(file_path));
+
+    expect(run.status).toBe(0);
+    if (expected === 'deny') {
+      const output = JSON.parse(run.stdout).hookSpecificOutput;
+      expect(output).toMatchObject({ hookEventName: 'PreToolUse', permissionDecision: 'deny' });
+      expect(output.permissionDecisionReason).toContain(reason);
+    } else {
+      expect(run.stdout).toBe('');
+    }
+  });
+
+  test('a relative path and a notebook path are checked too', () => {
+    const relativeEnv = runHook(FILES, { ...write(''), tool_input: { file_path: '.env' } });
+    const notebook = runHook(FILES, { ...write(''), tool_input: { notebook_path: join(projectDir, 'dist/a.ipynb') } });
+
+    expect(JSON.parse(relativeEnv.stdout).hookSpecificOutput.permissionDecision).toBe('deny');
+    expect(JSON.parse(notebook.stdout).hookSpecificOutput.permissionDecision).toBe('deny');
+  });
+
+  test('a denial is recorded in the audit log', () => {
+    runHook(FILES, write('.env'));
+
+    expect(logLines()[0]?.blocked).toMatch(/secrets/);
+  });
+
+  test('unreadable input is let through', () => {
+    const run = runHook(FILES, 'not json');
+    expect(run.status).toBe(0);
+    expect(run.stdout).toBe('');
   });
 });
 

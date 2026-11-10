@@ -30,6 +30,7 @@ What Claude may do on its own in this repo, what needs the owner's approval, and
 | A forced `git push` | Hook: `.claude/hooks/guard-bash.mjs` blocks it with exit 2 |
 | A recursive delete of `/`, the home folder, the project root or anything outside the project | Hook: `.claude/hooks/guard-bash.mjs` blocks it with exit 2 |
 | Publishing a package with `npm`, `pnpm` or `yarn` | Hook: `.claude/hooks/guard-bash.mjs` blocks it with exit 2 |
+| Editing `.env*`, `.claude/settings.json` or anything in `dist/` with the edit tools | Hook: `.claude/hooks/guard-files.mjs` denies it in JSON |
 | Network calls in the app (`fetch`, `XMLHttpRequest`, `WebSocket`) | ESLint: `no-restricted-globals` |
 | `localStorage`, `sessionStorage`, `indexedDB` in the app | ESLint: `no-restricted-globals` |
 | Turning a file's content into HTML | ESLint: the safety rules, kept honest by `src/safety-lint.test.ts` |
@@ -53,4 +54,5 @@ Every tool call is logged to `logs/agent-audit.jsonl` (`.claude/hooks/audit-log.
 - `main` has no branch protection on GitHub, so a push from outside Claude Code skips every check above except CI.
 - The `ask` rule for commits and pushes lives only in the owner's personal settings.
 - Nothing enforces the dependency rule, the CSS token rule or the read-only rule before code is written.
+- `guard-files.mjs` sees only the edit tools, so a shell command can still write to `.env` or `.claude/settings.json`.
 - Claude can edit files through shell commands (`cat >`, `sed -i`, a `python3` script) instead of the edit tools. In Auto mode the classifier then judges a shell command, not a file edit, and the audit log shows the command, not which file changed. Seen in the Level 6 exercise 8 run.
