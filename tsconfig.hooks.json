@@ -1,0 +1,10 @@
+{
+  // The hooks and their tests run in Node, not the browser, so only this config knows Node's types.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "resolveJsonModule": true
+  },
+  "include": [".claude/hooks"]
+}

@@ -51,4 +51,4 @@ Every tool call is logged to `logs/agent-audit.jsonl` (`.claude/hooks/audit-log.
 - `main` has no branch protection on GitHub, so a push from outside Claude Code skips every check above except CI.
 - The `ask` rule for commits and pushes lives only in the owner's personal settings.
 - Nothing enforces the dependency rule, the CSS token rule or the read-only rule before code is written.
-- Claude can edit files through shell commands (`cat >`, `sed -i`, a `python3` script) instead of the edit tools. In Auto mode the classifier then judges a shell command, not a file edit, and the audit log shows the command, not which file changed. Seen in the Level 6 homework 3 run.
+- Claude can edit files through shell commands (`cat >`, `sed -i`, a `python3` script) instead of the edit tools. In Auto mode the classifier then judges a shell command, not a file edit, and the audit log shows the command, not which file changed. Seen in the Level 6 exercise 8 run.

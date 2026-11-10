@@ -1,4 +1,6 @@
-# Level 6, homework 3: a feature in Auto mode, and the responsibility contract
+# Level 6, exercises 8 and 9: a feature in Auto mode, and the contract
+
+Built before the Level 6 cards were read. Exercise 8 still needs the allow, ask and deny rules, and exercise 9 needs each "never" row tried in a session.
 
 ## The contract
 
@@ -8,7 +10,7 @@ Writing it surfaced gaps: `main` has no branch protection on GitHub, the `ask` r
 
 ## The run
 
-On 2026-11-10 the owner ran `prompts/l6-ex3-expand-collapse-all.md` in a fresh session with `claude --permission-mode auto --effort medium`. It added Expand all and Collapse all above the tree, with the folder list in `src/lib/tree-expand.ts`, tests, labels in `format.ts` and styles from the tokens.
+On 2026-11-10 the owner ran `prompts/l6-ex8-expand-collapse-all.md` in a fresh session with `claude --permission-mode auto --effort medium`. It added Expand all and Collapse all above the tree, with the folder list in `src/lib/tree-expand.ts`, tests, labels in `format.ts` and styles from the tokens.
 
 - 8 tool calls in about a minute and a half, all `Bash`, and no stop to ask the owner.
 - The check ran once, at the end, and passed: 16 test files, 176 tests.

@@ -1,4 +1,4 @@
-# Level 6, homework 3: expand all and collapse all
+# Level 6, exercise 8: expand all and collapse all
 
 Run in a fresh session, in Auto mode, from the repo root:
 

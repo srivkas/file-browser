@@ -5,8 +5,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint .",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.hooks.json",
+    "lint": "eslint . --max-warnings 0",
     "test": "vitest run",
     "check": "npm run typecheck && npm run lint && npm run test"
   },
@@ -20,6 +20,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@modelcontextprotocol/sdk": "^1.32.2",
+    "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",

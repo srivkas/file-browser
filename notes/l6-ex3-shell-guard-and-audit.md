@@ -1,4 +1,6 @@
-# Level 6, homework 1: a guard hook and an audit hook
+# Level 6, exercises 3 and 7: a guard on the shell, and the audit trail
+
+Built before the Level 6 cards were read, from the summary slide. Exercise 3 still needs a recursive delete and a publish blocked, and exercise 7 needs the event name in every line and the same fields on every line.
 
 ## The hooks
 
