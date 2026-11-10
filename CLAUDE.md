@@ -38,3 +38,8 @@ A browser-only, read-only file explorer used as the base project for a course. R
 - Picking an empty folder in the Firefox/Safari fallback gives no feedback — an open decision; ask before adding a message.
 
 <!-- /bmad:context -->
+
+## Working on your own
+
+- After three red checks in a row on the same problem, stop and report what you tried, instead of trying again.
+- When you add or change a rule, permission or hook, update `CONTRACT.md`, which names who enforces each rule.

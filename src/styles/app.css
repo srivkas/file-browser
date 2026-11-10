@@ -59,6 +59,11 @@ body {
   color: var(--color-text);
 }
 .tree-filter:focus-visible { outline: var(--focus-ring-width) solid var(--color-accent); outline-offset: calc(-1 * var(--focus-ring-width)); }
+.tree-actions { display: flex; gap: var(--space-1); margin-bottom: var(--space-2); }
+.tree-action { flex: 1; padding: var(--space-1) var(--space-2); font-size: var(--font-size-sm); }
+.tree-action:disabled { color: var(--color-muted); cursor: default; }
+.tree-action:disabled:hover { background: var(--color-bg); }
+.tree-action:focus-visible { outline: var(--focus-ring-width) solid var(--color-accent); outline-offset: calc(-1 * var(--focus-ring-width)); }
 .tree, .tree ul { list-style: none; margin: 0; padding: 0; }
 .tree-row {
   display: flex;

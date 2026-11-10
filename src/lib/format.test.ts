@@ -6,6 +6,7 @@ import {
   formatImagePlaceholder,
   formatLineCount,
   formatPreviewMessage,
+  formatTreeAction,
   formatRelativeTime,
 } from './format';
 import { formatExif } from './image';
@@ -79,5 +80,12 @@ describe('formatImagePlaceholder', () => {
     expect(formatImagePlaceholder('logo')).toBe('logo');
     expect(formatImagePlaceholder('')).toBe('Image');
     expect(formatImagePlaceholder('   ')).toBe('Image');
+  });
+});
+
+describe('formatTreeAction', () => {
+  it('labels the buttons above the tree', () => {
+    expect(formatTreeAction('expand-all')).toBe('Expand all');
+    expect(formatTreeAction('collapse-all')).toBe('Collapse all');
   });
 });

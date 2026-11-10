@@ -64,3 +64,13 @@ export function formatPreviewMessage(kind: keyof typeof PREVIEW_MESSAGES): strin
 export function formatImagePlaceholder(alt: string): string {
   return alt.trim() ? alt : 'Image';
 }
+
+const TREE_ACTIONS = {
+  'expand-all': 'Expand all',
+  'collapse-all': 'Collapse all',
+} as const;
+
+/** Label of a button above the file tree. */
+export function formatTreeAction(kind: keyof typeof TREE_ACTIONS): string {
+  return TREE_ACTIONS[kind];
+}

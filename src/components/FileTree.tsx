@@ -2,6 +2,8 @@ import { useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from 
 import type { DirNode, FileNode, TreeNode } from '../lib/tree';
 import { filterTree, folderPaths } from '../lib/filter';
 import { treeKeyAction, visibleRows } from '../lib/tree-nav';
+import { collapseAll, expandAll } from '../lib/tree-expand';
+import { formatTreeAction } from '../lib/format';
 
 interface Props {
   root: DirNode;
@@ -50,6 +52,10 @@ export function FileTree({ root, selectedPath, onSelect }: Props) {
     setState({ ...state, open: next });
   }
 
+  // A focused row inside a closed folder disappears from `rows`, so the tab stop falls back to the root.
+  const handleExpandAll = () => setState({ ...state, open: expandAll(shown, state.open) });
+  const handleCollapseAll = () => setState({ ...state, open: collapseAll(root) });
+
   function handleKeyDown(event: KeyboardEvent<HTMLUListElement>) {
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     const action = treeKeyAction(rows, focused, event.key, state.open);
@@ -87,6 +93,14 @@ export function FileTree({ root, selectedPath, onSelect }: Props) {
         value={state.query}
         onChange={handleFilterChange}
       />
+      <div className="tree-actions">
+        <button type="button" className="button tree-action" onClick={handleExpandAll} disabled={!shown}>
+          {formatTreeAction('expand-all')}
+        </button>
+        <button type="button" className="button tree-action" onClick={handleCollapseAll}>
+          {formatTreeAction('collapse-all')}
+        </button>
+      </div>
       {shown ? (
         <ul className="tree" role="tree" onKeyDown={handleKeyDown}>
           <TreeRow node={shown} depth={0} {...rowProps} />
