@@ -9,6 +9,8 @@ import fileSamples from './samples/guard-files.json';
 const GUARD = join(import.meta.dirname, 'guard-bash.mjs');
 const AUDIT = join(import.meta.dirname, 'audit-log.mjs');
 const FILES = join(import.meta.dirname, 'guard-files.mjs');
+const CSS = join(import.meta.dirname, 'check-css-tokens.mjs');
+const CSS_SAMPLES = join(import.meta.dirname, 'samples', 'css');
 
 // Every test gets its own project folder, so no test writes a log into the repo.
 let projectDir = '';
@@ -119,6 +121,38 @@ describe('guard-files', () => {
     const run = runHook(FILES, 'not json');
     expect(run.status).toBe(0);
     expect(run.stdout).toBe('');
+  });
+});
+
+describe('check-css-tokens', () => {
+  const edited = (file_path: string) => ({ hook_event_name: 'PostToolUse', tool_name: 'Edit', tool_input: { file_path } });
+
+  test('a CSS file with hard-coded values gets each one back with its line, and exit 2', () => {
+    const run = runHook(CSS, edited(join(CSS_SAMPLES, 'breaks-rule.css')));
+
+    expect(run.status).toBe(2);
+    expect(run.stderr).toContain('tokens.css');
+    expect(run.stderr).toContain('breaks-rule.css:3: color uses #ff0000');
+    expect(run.stderr).toContain('breaks-rule.css:4: padding uses 4px');
+    expect(run.stderr).toContain('breaks-rule.css:4: padding uses 0.5rem');
+    expect(run.stderr).toContain('breaks-rule.css:5: border uses rgb(…)');
+    expect(run.stderr).not.toContain('uses 1px');
+    expect(run.stderr).not.toContain('#fab');
+  });
+
+  test('a CSS file that uses the tokens stays silent', () => {
+    const run = runHook(CSS, edited(join(CSS_SAMPLES, 'respects-rule.css')));
+
+    expect(run.status).toBe(0);
+    expect(run.stderr).toBe('');
+  });
+
+  test('other files, tokens.css itself and a missing file are left alone', () => {
+    for (const file of ['src/lib/format.ts', 'src/styles/tokens.css', 'src/styles/missing.css']) {
+      const run = runHook(CSS, edited(file));
+      expect(run.status).toBe(0);
+      expect(run.stderr).toBe('');
+    }
   });
 });
 

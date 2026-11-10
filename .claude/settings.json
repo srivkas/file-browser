@@ -52,7 +52,17 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/audit-log.mjs\""
           }
         ]
-      }
+      },
+       {
+          "matcher": "Edit|Write",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-css-tokens.mjs\"",
+              "timeout": 10
+            }
+          ]
+        }
     ],
     "PostToolUseFailure": [
       {

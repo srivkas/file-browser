@@ -37,7 +37,7 @@ What Claude may do on its own in this repo, what needs the owner's approval, and
 | React in `src/lib/` | ESLint: `no-restricted-imports` |
 | Merging code that fails the check | CI: `.github/workflows/deploy.yml` runs `npm run check` before deploying |
 | Writing to the user's files | Advisory. The picker asks for read access (`src/lib/directory.ts`), but nothing bans write APIs |
-| Hard-coded colors, sizes or spacing in CSS | Advisory. `/rule-review` or the `rule-reviewer` agent finds them, when asked |
+| Hard-coded colors, sizes or spacing in CSS | Hook: `.claude/hooks/check-css-tokens.mjs` reports them right after an edit-tool edit, so Claude fixes them in the same turn. Feedback, not a block. Edits through the shell aren't checked |
 | Display strings outside `src/lib/format.ts` | Advisory |
 | Editing installer-managed files in `_bmad/` | Advisory |
 
@@ -53,6 +53,6 @@ Every tool call is logged to `logs/agent-audit.jsonl` (`.claude/hooks/audit-log.
 
 - `main` has no branch protection on GitHub, so a push from outside Claude Code skips every check above except CI.
 - The `ask` rule for commits and pushes lives only in the owner's personal settings.
-- Nothing enforces the dependency rule, the CSS token rule or the read-only rule before code is written.
+- Nothing enforces the dependency rule or the read-only rule before code is written. The CSS token rule is checked only after edit-tool edits, and `npm run check` doesn't read CSS.
 - `guard-files.mjs` sees only the edit tools, so a shell command can still write to `.env` or `.claude/settings.json`.
 - Claude can edit files through shell commands (`cat >`, `sed -i`, a `python3` script) instead of the edit tools. In Auto mode the classifier then judges a shell command, not a file edit, and the audit log shows the command, not which file changed. Seen in the Level 6 exercise 8 run.

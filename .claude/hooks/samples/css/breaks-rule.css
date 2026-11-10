@@ -1,0 +1,6 @@
+/* Sample for check-css-tokens.mjs: every value below breaks the token rule. */
+#fab .badge {
+  color: #ff0000;
+  padding: 4px 0.5rem;
+  border: 1px solid rgb(0, 0, 0);
+}
