@@ -50,7 +50,7 @@ What Claude may do on its own in this repo, what needs the owner's approval, and
 
 ## Audit
 
-Every tool call is logged to `logs/agent-audit.jsonl` (`.claude/hooks/audit-log.mjs`), including calls that failed and forced pushes the guard blocked.
+Every tool call and every session start is logged to `logs/agent-audit.jsonl`, including calls that failed and calls a guard blocked. Each line has the same fields: `time`, `session`, `event`, `tool`, `target`, `outcome` (`ok`, `failed` or `blocked`) and `reason`. Written by `.claude/hooks/audit-log.mjs` and the two guards, through `.claude/hooks/audit-file.mjs`. It records commands and paths, never file contents.
 
 ## Known gaps
 

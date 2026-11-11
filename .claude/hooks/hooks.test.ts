@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
@@ -67,8 +67,14 @@ describe('guard-bash', () => {
 
     const lines = logLines();
     expect(lines).toHaveLength(1);
-    expect(lines[0]).toMatchObject({ session: 's1', tool: 'Bash', summary: 'git push --force' });
-    expect(lines[0]?.blocked).toMatch(/forced git push/);
+    expect(lines[0]).toMatchObject({
+      session: 's1',
+      event: 'PreToolUse',
+      tool: 'Bash',
+      target: 'git push --force',
+      outcome: 'blocked',
+    });
+    expect(lines[0]?.reason).toMatch(/forced git push/);
   });
 
   test('an allowed command writes nothing to the log', () => {
@@ -114,7 +120,8 @@ describe('guard-files', () => {
   test('a denial is recorded in the audit log', () => {
     runHook(FILES, write('.env'));
 
-    expect(logLines()[0]?.blocked).toMatch(/secrets/);
+    expect(logLines()[0]).toMatchObject({ event: 'PreToolUse', tool: 'Write', outcome: 'blocked' });
+    expect(logLines()[0]?.reason).toMatch(/secrets/);
   });
 
   test('unreadable input is let through', () => {
@@ -157,33 +164,73 @@ describe('check-css-tokens', () => {
 });
 
 describe('audit-log', () => {
-  test('appends one line per call with the tool, a summary and the result, and no file contents', () => {
-    const write = {
-      session_id: 's1',
-      hook_event_name: 'PostToolUse',
-      tool_name: 'Write',
-      tool_input: { file_path: 'notes/a.md', content: 'private text' },
-      tool_response: { success: true },
-    };
+  const write = {
+    session_id: 's1',
+    hook_event_name: 'PostToolUse',
+    tool_name: 'Write',
+    tool_input: { file_path: 'notes/a.md', content: 'private text' },
+    tool_response: { success: true },
+  };
+
+  test('appends one line per call with the event, the tool, its target and the outcome, and no file contents', () => {
     const run = runHook(AUDIT, write);
     runHook(AUDIT, { ...write, tool_name: 'Bash', tool_input: { command: 'ls' } });
 
     expect(run.status).toBe(0);
     const lines = logLines();
     expect(lines).toHaveLength(2);
-    expect(lines[0]).toMatchObject({ session: 's1', tool: 'Write', summary: 'notes/a.md', ok: true });
+    expect(lines[0]).toMatchObject({
+      session: 's1',
+      event: 'PostToolUse',
+      tool: 'Write',
+      target: 'notes/a.md',
+      outcome: 'ok',
+      reason: null,
+    });
     expect(JSON.stringify(lines[0])).not.toContain('private text');
-    expect(lines[1]?.summary).toBe('ls');
+    expect(lines[1]?.target).toBe('ls');
   });
 
-  test('a call that failed is logged as not ok', () => {
+  test('a call that failed is logged as failed', () => {
     runHook(AUDIT, { hook_event_name: 'PostToolUseFailure', tool_name: 'Bash', tool_input: { command: 'ls missing' } });
     runHook(AUDIT, { hook_event_name: 'PostToolUse', tool_name: 'Bash', tool_response: { is_error: true } });
 
-    expect(logLines().map(line => line.ok)).toEqual([false, false]);
+    expect(logLines().map(line => line.outcome)).toEqual(['failed', 'failed']);
   });
 
-  test('bad input never fails the hook', () => {
+  test('a session start is logged, with how it started and no tool', () => {
+    runHook(AUDIT, { session_id: 's2', hook_event_name: 'SessionStart', source: 'startup' });
+
+    expect(logLines()[0]).toMatchObject({ session: 's2', event: 'SessionStart', tool: null, target: 'startup', outcome: 'ok' });
+  });
+
+  test('a long command keeps its start and its end', () => {
+    const command = `${'a'.repeat(400)} && npm run check`;
+    runHook(AUDIT, { ...write, tool_name: 'Bash', tool_input: { command } });
+
+    const logged = logLines()[0]?.target as string;
+    expect(logged.startsWith('a'.repeat(200))).toBe(true);
+    expect(logged.endsWith('&& npm run check')).toBe(true);
+    expect(logged.length).toBeLessThan(command.length);
+  });
+
+  test('every line has the same fields, whichever hook wrote it', () => {
+    runHook(AUDIT, write);
+    runHook(AUDIT, { session_id: 's1', hook_event_name: 'SessionStart', source: 'resume' });
+    runHook(GUARD, bash('git push --force'));
+    runHook(FILES, { session_id: 's1', hook_event_name: 'PreToolUse', tool_name: 'Write', tool_input: { file_path: '.env' } });
+
+    const fieldSets = new Set(logLines().map(line => Object.keys(line).join(',')));
+    expect(logLines()).toHaveLength(4);
+    expect([...fieldSets]).toEqual(['time,session,event,tool,target,outcome,reason']);
+  });
+
+  test('bad input, or a log it cannot write, never fails the hook', () => {
     expect(runHook(AUDIT, 'not json').status).toBe(0);
+
+    // A file where the logs folder should be makes the write fail.
+    writeFileSync(join(projectDir, 'logs'), 'not a folder');
+    expect(runHook(AUDIT, write).status).toBe(0);
+    expect(runHook(GUARD, bash('git push --force')).status).toBe(2);
   });
 });

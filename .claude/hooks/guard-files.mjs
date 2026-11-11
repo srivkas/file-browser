@@ -6,7 +6,7 @@
 import { readFileSync, writeSync } from 'node:fs';
 import { basename, relative, resolve } from 'node:path';
 import process from 'node:process';
-import { appendAudit, summary } from './audit-file.mjs';
+import { appendAudit, auditEntry } from './audit-file.mjs';
 
 const REASONS = {
   env: 'Files named .env* hold secrets. Ask the owner to change them.',
@@ -42,14 +42,7 @@ function main() {
   };
   writeSync(1, JSON.stringify(decision));
   try {
-    const entry = {
-      time: new Date().toISOString(),
-      session: event.session_id,
-      tool: event.tool_name,
-      summary: summary(input),
-      blocked: reason,
-    };
-    appendAudit(entry, event);
+    appendAudit(auditEntry(event, 'blocked', reason), event);
   } catch {
     // The denial stands even if the log can't be written.
   }

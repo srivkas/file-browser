@@ -1,6 +1,6 @@
-# Level 6, exercises 3 and 7: a guard on the shell, and the audit trail
+# Level 6, exercise 3: a guard on the shell
 
-First built from the summary slide, before the Level 6 cards were read, then finished for exercise 3. Exercise 7 still needs the event name in every line and the same fields on every line.
+First built from the summary slide, before the Level 6 cards were read, then finished for this exercise. The audit log it started is finished in exercise 7, `l6-ex7-audit-trail.md`.
 
 ## The hooks
 

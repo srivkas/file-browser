@@ -6,7 +6,7 @@
 import { readFileSync, writeSync } from 'node:fs';
 import { isAbsolute, normalize } from 'node:path';
 import process from 'node:process';
-import { appendAudit, summary } from './audit-file.mjs';
+import { appendAudit, auditEntry } from './audit-file.mjs';
 
 // Each piece of a command line between ; && || | and newlines is checked on its own.
 const SEPARATORS = /;|&&|\|\||\||\n/;
@@ -96,14 +96,7 @@ function main() {
   writeSync(2, `${reason}\n`);
   process.exitCode = 2;
   try {
-    const entry = {
-      time: new Date().toISOString(),
-      session: event.session_id,
-      tool: event.tool_name,
-      summary: summary(event.tool_input),
-      blocked: reason,
-    };
-    appendAudit(entry, event);
+    appendAudit(auditEntry(event, 'blocked', reason), event);
   } catch {
     // The block stands even if the log can't be written.
   }
