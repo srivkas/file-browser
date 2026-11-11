@@ -65,7 +65,8 @@ export default tseslint.config(
   {
     // Project rule: src/lib is a framework-free core.
     // A later block replaces the rule, so every lib block repeats the React ban.
-    files: ['src/lib/**/*.ts'],
+    // .tsx too: a JSX file is the likeliest place for React to slip in.
+    files: ['src/lib/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': ['error', { patterns: [MARKED_BAN, REACT_BAN] }],
     },

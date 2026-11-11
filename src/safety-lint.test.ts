@@ -16,6 +16,11 @@ const MARKDOWN = 'src/lib/markdown.ts';
 const COMPONENT = 'src/components/Example.tsx';
 
 describe('ESLint safety rules', () => {
+  // A .tsx file in src/lib once slipped past the React ban, whose pattern named only .ts.
+  it.each(['src/lib/example.ts', 'src/lib/example.tsx'])('rejects React in %s', async (filePath) => {
+    expect(await errorsFor("import { useState } from 'react';\nexport const s = useState;\n", filePath)).not.toEqual([]);
+  });
+
   it('lets markdown.ts use the lexer', async () => {
     expect(await errorsFor("import { marked } from 'marked';\nexport const t = marked.lexer('# a');\n", MARKDOWN)).toEqual([]);
   });

@@ -40,8 +40,8 @@ Permission rules live in `.claude/settings.json`. `deny` beats `ask`, and `ask` 
 | Network calls in the app (`fetch`, `XMLHttpRequest`, `WebSocket`) | ESLint: `no-restricted-globals` |
 | `localStorage`, `sessionStorage`, `indexedDB` in the app | ESLint: `no-restricted-globals` |
 | Turning a file's content into HTML | ESLint: the safety rules, kept honest by `src/safety-lint.test.ts` |
-| React in `src/lib/` | ESLint: `no-restricted-imports` |
-| Merging code that fails the check | CI: `.github/workflows/deploy.yml` runs `npm run check` before deploying |
+| React in `src/lib/`, in `.ts` and `.tsx` files | ESLint: `no-restricted-imports`, kept honest by `src/safety-lint.test.ts` |
+| Merging code that fails the check | CI: `.github/workflows/deploy.yml` runs `npm run check` before deploying. Not attacked: trying it would deploy |
 | Writing to the user's files | Advisory. The picker asks for read access (`src/lib/directory.ts`), but nothing bans write APIs |
 | Hard-coded colors, sizes or spacing in CSS | Hook: `.claude/hooks/check-css-tokens.mjs` reports them right after an edit-tool edit, so Claude fixes them in the same turn. Feedback, not a block |
 | Display strings outside `src/lib/format.ts` | Advisory |
