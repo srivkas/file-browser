@@ -4,12 +4,14 @@ import { fileType, formatBytes, formatDate, formatLineCount, formatRelativeTime 
 import { relativeTime } from '../lib/time';
 import { isImage, readExif, readImageDimensions, type ExifRow, type ImageDimensions } from '../lib/image';
 import { canCountLines, countLines } from '../lib/text';
+import { Breadcrumb } from './Breadcrumb';
 import { TextPreview } from './TextPreview';
 
 export function DetailPane({ node, root }: { node: FileNode; root: DirNode }) {
   const { file } = node;
   return (
     <div className="details">
+      <Breadcrumb path={node.path} />
       <h2 className="details-title">{file.name}</h2>
       <dl className="props">
         <dt>Size</dt>

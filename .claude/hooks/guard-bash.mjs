@@ -19,7 +19,27 @@ const REASONS = {
   recursiveDelete:
     'A recursive delete of the home folder, the project root or anything outside the project is blocked. Delete a folder inside the project by its path, or ask the owner.',
   publish: 'Publishing a package is the owner’s decision. Ask the owner to publish.',
+  shellWrite:
+    'Edit files in src/ with the Edit or Write tools, not through the shell, so the project’s hooks see and check the change.',
 };
+
+// Ways a shell command writes a file: a redirect (not 2>&1), tee, sed -i, or a script that writes.
+const SRC = String.raw`["']?(?:\./)?src/`;
+const SHELL_WRITES = [
+  new RegExp(String.raw`(?:^|[^0-9&>])>>?\s*${SRC}`),
+  new RegExp(String.raw`\btee\b(?:\s+-a)?\s+${SRC}`),
+  new RegExp(String.raw`\bsed\b[^\n|;&]*\s-i\b[^\n|;&]*\ssrc/`),
+];
+const SCRIPT = /\b(?:python3?|node|perl|ruby)\b/;
+const SCRIPT_WRITE = /\.write\b|writeFileSync|open\([^)]*["'][wa]["']/;
+const SCRIPT_SRC_PATH = /["'](?:\.\/)?src\/[^"']+["']/;
+
+/** Whether the command writes a file in src/ through the shell, where the edit-tool hooks can't see it. */
+export function writesSourceThroughShell(command, projectDir) {
+  const text = projectDir ? command.replaceAll(`${projectDir.replace(/\/+$/, '')}/`, '') : command;
+  if (SHELL_WRITES.some(pattern => pattern.test(text))) return true;
+  return SCRIPT.test(text) && SCRIPT_WRITE.test(text) && SCRIPT_SRC_PATH.test(text);
+}
 
 function words(piece) {
   // Quotes are dropped so that `bash -c "git push --force"` is still caught.
@@ -70,6 +90,8 @@ function isPublish(list, i) {
 
 /** The reason a command is blocked, or null when it may run. */
 export function blockReason(command, projectDir) {
+  // Checked on the whole command, because a heredoc spans several lines.
+  if (writesSourceThroughShell(command, projectDir)) return REASONS.shellWrite;
   for (const piece of command.split(SEPARATORS)) {
     const list = words(piece);
     for (let i = 0; i < list.length; i++) {

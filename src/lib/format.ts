@@ -85,3 +85,9 @@ const TREE_FILTER = {
 export function formatTreeFilter(kind: keyof typeof TREE_FILTER): string {
   return TREE_FILTER[kind];
 }
+
+/** Accessible name of the breadcrumb above the file name. */
+export const BREADCRUMB_LABEL = 'File location';
+
+/** Shown between two folders in the breadcrumb. */
+export const BREADCRUMB_SEPARATOR = '/';

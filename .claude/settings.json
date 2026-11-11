@@ -7,7 +7,29 @@
       "Bash(npm run check)",
       "Bash(npm run test)",
       "Bash(npm run lint)",
-      "Bash(npm run typecheck)"
+      "Bash(npm run typecheck)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log)",
+      "Bash(git log *)",
+      "Bash(git push)",
+      "Bash(git push *)"
+    ],
+    "ask": [
+      "Bash(git push *main*)",
+      "Bash(npm install)",
+      "Bash(npm install *)",
+      "Bash(npm i)",
+      "Bash(npm i *)",
+      "Bash(npm ci)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)"
     ]
   },
   "enabledPlugins": {

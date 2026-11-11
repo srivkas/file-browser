@@ -38,5 +38,18 @@
   { "command": "npm run check && npm publish", "expect": "block", "reason": "Publishing" },
   { "command": "npm run check", "expect": "allow" },
   { "command": "npm install", "expect": "allow" },
-  { "command": "npm view react version", "expect": "allow" }
+  { "command": "npm view react version", "expect": "allow" },
+
+  { "command": "cat > src/lib/x.ts <<'EOF'\nexport const x = 1;\nEOF", "expect": "block", "reason": "Edit or Write tools" },
+  { "command": "echo '.a { color: red; }' >> src/styles/app.css", "expect": "block", "reason": "Edit or Write tools" },
+  { "command": "sed -i '' 's/a/b/' src/lib/format.ts", "expect": "block", "reason": "Edit or Write tools" },
+  { "command": "printf x | tee src/lib/x.ts", "expect": "block", "reason": "Edit or Write tools" },
+  { "command": "python3 - <<'EOF'\np='src/components/FileTree.tsx'\ns=open(p).read()\nopen(p,'w').write(s)\nEOF", "expect": "block", "reason": "Edit or Write tools" },
+  { "command": "node -e \"require('fs').writeFileSync('src/lib/a.ts', 'x')\"", "expect": "block", "reason": "Edit or Write tools" },
+  { "command": "cat src/lib/format.ts", "expect": "allow" },
+  { "command": "sed -n 1,20p src/lib/format.ts", "expect": "allow" },
+  { "command": "npm run check 2>&1 | tail -5", "expect": "allow" },
+  { "command": "grep -n tree src/lib/tree.ts > /tmp/hits.txt", "expect": "allow" },
+  { "command": "python3 -c \"print(open('src/lib/tree.ts').read())\"", "expect": "allow" },
+  { "command": "cat > notes/today.md <<'EOF'\nnotes\nEOF", "expect": "allow" }
 ]
