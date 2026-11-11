@@ -14,7 +14,7 @@ Unlike the shell guard, it answers in JSON on stdout, with `permissionDecision: 
 
 ## Don't lock yourself out
 
-The card warns that once `.claude/settings.json` is protected, Claude can't wire the later hooks. The owner chose to protect it now and add later wiring by hand, from snippets Claude prepares. This hook was the last change Claude made to that file.
+The card warns that once `.claude/settings.json` is protected, Claude can't wire the later hooks. The owner first chose to protect it and add later wiring by hand, and pasted the exercise 5 hook that way. In exercise 6 the owner removed the protection, to stop pasting by hand. `.env*` and `dist/` stay protected, and `CONTRACT.md` lists the open settings file as a known gap.
 
 ## Checked
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// PreToolUse hook for the tools that edit and write: denies writes to secrets, to the harness's
-// own settings and to the build output. It answers in JSON on stdout and always exits 0.
+// PreToolUse hook for the tools that edit and write: denies writes to secrets and to the build
+// output. It answers in JSON on stdout and always exits 0. `.claude/settings.json` was protected
+// too, until the owner chose to let Claude wire the hooks instead of pasting each change by hand.
 // It sees only the edit tools: a shell command that writes a file goes past it.
 import { readFileSync, writeSync } from 'node:fs';
 import { basename, relative, resolve } from 'node:path';
@@ -9,18 +10,16 @@ import { appendAudit, summary } from './audit-file.mjs';
 
 const REASONS = {
   env: 'Files named .env* hold secrets. Ask the owner to change them.',
-  settings: 'The harness protects its own settings, so Claude cannot remove its limits. Ask the owner to edit .claude/settings.json.',
   build: 'dist/ is build output: change the source and run the build instead.',
 };
 
 /** The reason a write to `filePath` is denied, or null when it may go ahead. */
 export function denyReason(filePath, projectDir) {
   if (typeof filePath !== 'string' || filePath === '') return null;
-  // macOS ignores case, so `.Claude/Settings.json` is the same file.
+  // macOS ignores case, so `.ENV` or `Dist/` is the same file.
   const name = basename(filePath).toLowerCase();
   const path = relative(projectDir, resolve(projectDir, filePath)).toLowerCase();
   if (name.startsWith('.env')) return REASONS.env;
-  if (path === '.claude/settings.json') return REASONS.settings;
   if (path === 'dist' || path.startsWith('dist/')) return REASONS.build;
   return null;
 }
