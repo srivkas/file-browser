@@ -43,6 +43,13 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    // Saved workflows get their helpers from the Claude Code workflow runtime and import nothing.
+    files: ['.claude/workflows/**/*.js'],
+    languageOptions: {
+      globals: { agent: 'readonly', parallel: 'readonly', pipeline: 'readonly', phase: 'readonly', log: 'readonly', args: 'readonly', budget: 'readonly', workflow: 'readonly' },
+    },
+  },
+  {
     files: ['src/**/*.{ts,tsx}'],
     languageOptions: { globals: globals.browser },
     plugins: { 'react-hooks': reactHooks },
