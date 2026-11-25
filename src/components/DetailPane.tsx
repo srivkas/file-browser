@@ -1,9 +1,10 @@
 import { Fragment, useEffect, useState } from 'react';
 import type { DirNode, FileNode } from '../lib/tree';
-import { fileType, formatBytes, formatDate, formatLineCount, formatRelativeTime } from '../lib/format';
+import { fileType, formatBytes, formatDate, formatLineCount, formatRelativeTime, formatWordCount } from '../lib/format';
 import { relativeTime } from '../lib/time';
 import { isImage, readExif, readImageDimensions, type ExifRow, type ImageDimensions } from '../lib/image';
 import { canCountLines, countLines } from '../lib/text';
+import { countWords } from '../lib/words';
 import { Breadcrumb } from './Breadcrumb';
 import { TextPreview } from './TextPreview';
 
@@ -21,8 +22,8 @@ export function DetailPane({ node, root }: { node: FileNode; root: DirNode }) {
         <dt>Modified</dt>
         {/* key re-reads "now" when the selection changes */}
         <ModifiedDate key={node.path} timestamp={file.lastModified} />
-        {/* key resets the count when the selection changes */}
-        {canCountLines(file) && <LineCount key={node.path} file={file} />}
+        {/* key resets the counts when the selection changes */}
+        {canCountLines(file) && <TextCounts key={node.path} file={file} />}
       </dl>
       {/* key drops a stale read when the selection changes; suffixed so it differs from ImageDetails' key */}
       <TextPreview key={`${node.path}#text`} file={file} root={root} filePath={node.path} />
@@ -42,14 +43,14 @@ function ModifiedDate({ timestamp }: { timestamp: number }) {
   );
 }
 
-function LineCount({ file }: { file: File }) {
-  const [count, setCount] = useState<number | null>(null);
+function TextCounts({ file }: { file: File }) {
+  const [counts, setCounts] = useState<{ lines: number; words: number } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     file.text().then(
       (text) => {
-        if (!cancelled) setCount(countLines(text));
+        if (!cancelled) setCounts({ lines: countLines(text), words: countWords(text) });
       },
       () => {},
     );
@@ -58,12 +59,14 @@ function LineCount({ file }: { file: File }) {
     };
   }, [file]);
 
-  // The row appears once the count is ready; unreadable files show no row.
-  if (count === null) return null;
+  // The rows appear once the counts are ready; unreadable files show no rows.
+  if (counts === null) return null;
   return (
     <>
       <dt>Lines</dt>
-      <dd>{formatLineCount(count)}</dd>
+      <dd>{formatLineCount(counts.lines)}</dd>
+      <dt>Words</dt>
+      <dd>{formatWordCount(counts.words)}</dd>
     </>
   );
 }

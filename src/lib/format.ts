@@ -35,6 +35,11 @@ export function formatLineCount(count: number): string {
   return count.toLocaleString('en-US');
 }
 
+/** "1,204", grouped like the line count. */
+export function formatWordCount(count: number): string {
+  return count.toLocaleString('en-US');
+}
+
 export function extension(name: string): string {
   const dot = name.lastIndexOf('.');
   return dot > 0 ? name.slice(dot + 1).toLowerCase() : '';
