@@ -52,7 +52,7 @@ const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'bas
 
 /** Folders first, then natural name order (file2 before file10). */
 export function compareNodes(a: TreeNode, b: TreeNode): number {
-  if (a.kind !== b.kind) return a.kind === 'dir' ? 1 : -1;
+  if (a.kind !== b.kind) return a.kind === 'dir' ? -1 : 1;
   return collator.compare(a.name, b.name);
 }
 
