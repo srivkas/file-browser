@@ -1,6 +1,14 @@
 # Level 7, exercise 8: the loop reports, the goal fixes
 
-**Not run.** The owner skipped the runs and kept the concept. What was prepared and discussed:
+**Partly run** (session `85c02bb7`). The shortcut was run; the hand-off was not, because the break never happened.
+
+## What ran
+
+- `/loop 1m /goal git status --short prints nothing` became `CronCreate {"prompt": "/goal git status --short prints nothing"}`. Each tick arrived as text. The session said `/goal` is a built-in command it couldn't run, and ran `git status --short` itself instead. No goal was set, no evaluator ran, and the loop didn't stop when the condition held. It stopped only when asked to cancel (`CronDelete`).
+- `/loop 1m` with the exercise 6 watch: `tree: clean · … · changed`, then `nothing changed` for eight ticks. On the third unchanged tick the session sent a push notification by itself, suggesting the loop be cancelled.
+- "break it", meant for the other session, was typed into the loop session, which read it as "stop the loop" and cancelled it. The goal was then set on a clean tree and was achieved at once, with nothing to delete.
+
+## What was planned
 
 ## The plan
 
