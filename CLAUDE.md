@@ -43,3 +43,14 @@ A browser-only, read-only file explorer used as the base project for a course. R
 
 - After three red checks in a row on the same problem, stop and report what you tried, instead of trying again.
 - When you add or change a rule, permission or hook, update `CONTRACT.md`, which names who enforces each rule.
+
+## Picking a tool for unattended work
+
+Start with the lightest row that fits. Costs are from this repo's own Level 7 runs (`notes/l7-ex*.md`).
+
+| Shape of the work | Tool | What it cost here | Don't use it when |
+| --- | --- | --- | --- |
+| One question, an answer a script acts on | `claude -p` with `--json-schema` and caps (`scripts/audit-json.mjs`) | $0.045–0.088 a run; the same 9-file question as the workflow below: 56.9k tokens in 17 s, about half | The work needs several turns of trying and checking |
+| A finish line that printed output can prove | `/goal` with end state, proof, what must not change, and a limit | 1 turn, 1.9k–4.2k tokens, about a minute; a condition about taste: $0.71 and no verdict | Nothing printable proves the condition |
+| Watching something that has no finish line | `/loop` with `.claude/loop.md` | About 115k cached tokens a tick (the whole conversation, resent) for two git commands | It changes rarely, or the session is long: lengthen the interval |
+| The same question over many units | A workflow (`.claude/workflows/component-strings.js`) | 9 agents, 110.6k tokens, 9.8 s for 9 small files | There are few units: one agent that sees them all was cheaper and judged better |
